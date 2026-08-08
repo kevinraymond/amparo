@@ -220,6 +220,7 @@ Derived from the Bitwarden Security Whitepaper + public API documentation. Verif
 - **Home:** grid of large tiles (min 44pt targets — target ~120pt tiles), icon + site name only. Max ~8 visible; ordered by caregiver via cipher name prefix convention (`1. Banco`, `2. Email` — strip the prefix for display) — zero server-side custom fields needed. No search in v1 unless >12 items.
 - **Detail (tap tile):** giant "Copiar senha / Copy password" button (copies, 60s clipboard expiry via `UIPasteboard` expiration), secondary "Mostrar / Show" reveal with auto-hide 30s, username shown large. If TOTP present: 64pt code with a countdown ring. Nothing else.
 - **Typography:** Dynamic Type up to accessibility sizes; default to `.accessibility1`; WCAG AAA contrast; respect Reduce Motion; VoiceOver labels on everything.
+- **Color vision (added 2026-08-08):** standing rule from M3 on — never encode meaning in hue alone (every state also has text/icon/shape). Colorblind-friendly theme options (deuteranopia/protanopia/tritanopia-safe palettes, selectable in caregiver settings) land as an M5 task.
 - **Language:** en base; pt-BR localization scaffolded from day one (Kevin will polish strings).
 - **Error surface (single):** call-caregiver screen — caregiver name, giant phone button (`tel:`), calm one-sentence copy. All failure paths route here.
 - No settings, no onboarding, no tips, no badges, no notifications to the member.
@@ -297,7 +298,7 @@ Listing copy: "assisted access for the account holder, managed by a helper they 
 - M4-T2 Without-user-interaction path; interaction-required fallback UI.
 - M4-T3 Device test matrix incl. Assistive Access probe (log result).
 
-**M5 — Pilot/hardening:** TestFlight, clipboard expiry verify, memory hygiene pass, WebSocket push (optional), Argon2id (optional).
+**M5 — Pilot/hardening:** TestFlight, clipboard expiry verify, memory hygiene pass, colorblind-friendly theme options (§7.4 color-vision rule; caregiver-selectable palettes), WebSocket push (optional), Argon2id (optional).
 
 **M6 (P5) — Deployment kit:** prod compose (VW+Caddy) + Tailscale variant, enrollment runbook (encodes §2 account model + member-account 2FA/new-device settings), restic backup unit, upgrade notes.
 

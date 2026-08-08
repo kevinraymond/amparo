@@ -37,7 +37,7 @@ The handoff doc defines the tasks; this file records their state. One session
 ### M4 — Autofill (P3) — pending
 - [ ] M4-T1 extension + identity store · M4-T2 no-interaction path · M4-T3 device matrix incl. Assistive Access probe
 
-### M5 — Pilot/hardening (P4) — pending
+### M5 — Pilot/hardening (P4) — pending (incl. colorblind-friendly themes, added from device feedback 2026-08-08; standing rule meanwhile: no meaning by hue alone)
 ### M6 — Deployment kit (P5) — pending
 ### Android (P6) — blocked: no test device · Docs/store (P7) — last
 
