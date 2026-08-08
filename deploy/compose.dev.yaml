@@ -1,0 +1,28 @@
+# Dev-only Vaultwarden stack. Run from the repo root or deploy/:
+#   podman compose -f deploy/compose.dev.yaml up -d
+# (docker compose works identically.)
+#
+# Deviations from the handoff §5, all dev-pragmatic:
+#   - ADMIN_TOKEN comes from deploy/.env (gitignored); see .env.example.
+#   - A Caddy sidecar terminates TLS at https://localhost:8443 with its own
+#     internal CA (root cert lands in ./caddy-data/caddy/pki/authorities/
+#     local/root.crt): modern Bitwarden CLI/clients refuse plain-HTTP server
+#     URLs. Port 8222 stays plain HTTP for curl/debugging. Real-device TLS is
+#     a different setup — see dev-tls-notes.md.
+services:
+  vaultwarden:
+    image: docker.io/vaultwarden/server:latest
+    environment:
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - SIGNUPS_ALLOWED=true          # dev only; prod runbook sets false
+      - DOMAIN=https://localhost:8443
+    ports: ["8222:80"]
+    volumes: ["./vw-data:/data"]
+
+  caddy:
+    image: docker.io/library/caddy:2
+    ports: ["8443:8443"]
+    volumes:
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
+      - ./caddy-data:/data
+    depends_on: [vaultwarden]

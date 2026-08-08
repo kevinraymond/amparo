@@ -1,0 +1,7 @@
+{
+	local_certs
+}
+
+localhost:8443 {
+	reverse_proxy vaultwarden:80
+}

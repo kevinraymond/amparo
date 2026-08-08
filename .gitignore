@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# secrets / local env
+.env
+*.env.local
+
+# Vaultwarden dev data
+vw-data/
+
+# Node
+node_modules/
+
+# Swift / Xcode
+.build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+.swiftpm/
+fixtures/.bw/
+deploy/caddy-data/
