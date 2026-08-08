@@ -11,10 +11,12 @@ struct CredentialDetailView: View {
     let tile: MemberTile
 
     @State private var secrets: CredentialSecrets?
-    @State private var revealed = false
+    @State private var revealDeadline: Date?
     @State private var copied = false
     @State private var hideTask: Task<Void, Never>?
     @State private var copiedTask: Task<Void, Never>?
+
+    private var revealed: Bool { revealDeadline != nil }
 
     var body: some View {
         ScrollView {
@@ -24,9 +26,12 @@ struct CredentialDetailView: View {
                         Text(String(localized: "username.label"))
                             .font(.headline)
                             .foregroundStyle(.secondary)
+                        // One line, scaled to fit: wrapping hyphenates
+                        // emails, which reads as part of the address.
                         Text(username)
                             .font(.title.bold())
-                            .multilineTextAlignment(.center)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.4)
                             .textSelection(.enabled)
                     }
                 }
@@ -39,6 +44,8 @@ struct CredentialDetailView: View {
                             systemImage: copied ? "checkmark" : "doc.on.doc"
                         )
                         .font(.title.bold())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
                         .frame(maxWidth: .infinity, minHeight: 88)
                     }
                     .buttonStyle(.borderedProminent)
@@ -49,15 +56,27 @@ struct CredentialDetailView: View {
                     } label: {
                         Text(revealed ? String(localized: "reveal.hide") : String(localized: "reveal.show"))
                             .font(.title2)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                             .frame(maxWidth: .infinity, minHeight: 60)
                     }
                     .buttonStyle(.bordered)
 
-                    if revealed {
-                        Text(password)
-                            .font(.system(.title2, design: .monospaced))
-                            .multilineTextAlignment(.center)
-                            .textSelection(.enabled)
+                    if let deadline = revealDeadline {
+                        TimelineView(.periodic(from: .now, by: 1)) { context in
+                            let remaining = max(0, Int(deadline.timeIntervalSince(context.date).rounded(.up)))
+                            VStack(spacing: 8) {
+                                Text(password)
+                                    .font(.system(.title2, design: .monospaced))
+                                    .multilineTextAlignment(.center)
+                                    .textSelection(.enabled)
+                                Label("\(remaining)", systemImage: "timer")
+                                    .font(.callout)
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityHidden(true)
+                            }
+                        }
                     }
                 }
                 if let totp = secrets?.totp {
@@ -100,12 +119,14 @@ struct CredentialDetailView: View {
     }
 
     private func toggleReveal() {
-        revealed.toggle()
         hideTask?.cancel()
         if revealed {
+            revealDeadline = nil
+        } else {
+            revealDeadline = Date().addingTimeInterval(30)
             hideTask = Task {
                 try? await Task.sleep(for: .seconds(30))
-                revealed = false
+                revealDeadline = nil
             }
         }
     }

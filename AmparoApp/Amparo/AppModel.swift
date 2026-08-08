@@ -43,10 +43,14 @@ final class AppModel {
     }
 
     /// Reading the vault triggers Face ID (§7.3) — this *is* the unlock UX.
+    /// Any keychain-level hiccup (cancelled Face ID, device not fully
+    /// unlocked yet → interaction-not-allowed, …) is retryable `.locked`;
+    /// only vault-level states (biometry invalidated, store corrupted) are
+    /// terminal.
     func unlock() async {
         do {
             phase = .home(try await vault.tiles())
-        } catch KeychainError.userCancelledAuth, KeychainError.authenticationFailed {
+        } catch is KeychainError {
             phase = .locked
         } catch {
             failToHuman()
@@ -72,7 +76,15 @@ final class AppModel {
             if let tiles = try? await vault.tiles() {
                 phase = .home(tiles)
             }
-        case .enrollment, .callCaregiver:
+        case .callCaregiver:
+            // Self-heal: if the vault wasn't actually purged (transient
+            // failure landed here), a fresh foreground quietly retries.
+            // A genuinely purged vault stays on the call screen.
+            if await vault.isEnrolled() {
+                await refreshFromServer()
+                await unlock()
+            }
+        case .enrollment:
             break
         }
     }

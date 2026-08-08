@@ -72,13 +72,21 @@ public final class KeychainStore: @unchecked Sendable {
         for item in KeychainItem.allCases where !keep.contains(item) {
             delete(item)
         }
+        // Pre-D19 layout used three separate biometry slots; clear orphans.
+        for account in ["userKey", "privateKey", "orgKeys"] {
+            _ = client.delete(baseQuery(account: account))
+        }
     }
 
     private func baseQuery(_ item: KeychainItem) -> [CFString: Any] {
+        baseQuery(account: item.rawValue)
+    }
+
+    private func baseQuery(account: String) -> [CFString: Any] {
         var query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: configuration.service,
-            kSecAttrAccount: item.rawValue,
+            kSecAttrAccount: account,
         ]
         if let group = configuration.accessGroup {
             query[kSecAttrAccessGroup] = group

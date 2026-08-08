@@ -18,17 +18,16 @@ struct VaultStoreTests {
         let account = vectors["account"] as! [String: Any]
         let organization = vectors["organization"] as! [String: Any]
 
-        let userKey = try #require(try test.keychain.read(.userKey))
-        #expect(userKey.count == 64)
-        #expect(userKey.map { String(format: "%02x", $0) }.joined() == account["userKeyHex"] as? String)
-
-        let orgKeysData = try #require(try test.keychain.read(.orgKeys))
-        let orgKeys = try JSONDecoder().decode([String: String].self, from: orgKeysData)
+        let blob = try #require(try test.keychain.read(.vaultKeys))
+        let material = try JSONDecoder().decode(VaultKeyMaterial.self, from: blob)
+        #expect(material.userKey.count == 64)
+        #expect(material.userKey.map { String(format: "%02x", $0) }.joined() == account["userKeyHex"] as? String)
+        #expect(!material.privateKeyDer.isEmpty)
         let orgId = organization["id"] as! String
-        let orgKey = try #require(orgKeys[orgId].flatMap { Data(base64Encoded: $0) })
+        let orgKey = try #require(material.organizationKeys[orgId])
         #expect(orgKey.map { String(format: "%02x", $0) }.joined() == organization["orgKeyHex"] as? String)
 
-        for item: KeychainItem in [.privateKey, .refreshToken, .serverURL, .email,
+        for item: KeychainItem in [.refreshToken, .serverURL, .email,
                                    .deviceIdentifier, .caregiverProfile, .caregiverPIN, .consentRecord] {
             #expect(try test.keychain.read(item) != nil, "missing \(item)")
         }
@@ -97,7 +96,7 @@ struct VaultStoreTests {
         // Simulate Face ID re-enrollment: the biometry-tier item vanishes
         // while the passcode-tier enrollment markers survive.
         await test.vault.lock()
-        test.keychain.delete(.userKey)
+        test.keychain.delete(.vaultKeys)
 
         await #expect(throws: VaultStoreError.biometryInvalidated) {
             _ = try await test.vault.tiles()
@@ -150,12 +149,31 @@ struct VaultStoreTests {
         await #expect(throws: AmparoError.reenrollRequired) {
             try await restarted.syncNow()
         }
-        // Everything secret is gone; the call-caregiver screen still works.
-        #expect(test.fakeSecItems.storedAccounts ==
-            [KeychainItem.caregiverProfile.rawValue, KeychainItem.consentRecord.rawValue])
+        // Everything secret is gone; the call-caregiver screen still works
+        // AND its hidden caregiver door still accepts the PIN (D19).
+        #expect(test.fakeSecItems.storedAccounts == [
+            KeychainItem.caregiverProfile.rawValue,
+            KeychainItem.consentRecord.rawValue,
+            KeychainItem.caregiverPIN.rawValue,
+        ])
         #expect(try test.cipherStore.load() == nil)
         #expect(await !restarted.isEnrolled())
         #expect(await restarted.caregiverProfile() != nil)
+        #expect(await restarted.verifyCaregiverPIN("2468"))
+    }
+
+    /// D19 regression: on device, every biometry-item read prompts Face ID —
+    /// a whole unlocked session (list + two detail reads) must hit the
+    /// biometry tier exactly once.
+    @Test func unlockedSessionReadsBiometryTierExactlyOnce() async throws {
+        let test = TestVault(script: try TestVault.happyEnrollmentScript())
+        try await test.vault.enroll(TestVault.enrollmentRequest())
+
+        let tiles = try await test.vault.tiles()
+        _ = try await test.vault.secrets(forCipher: tiles[0].id)
+        _ = try await test.vault.secrets(forCipher: tiles[1].id)
+
+        #expect(test.fakeSecItems.readCount(for: .vaultKeys) == 1)
     }
 
     @Test func transientSyncFailureKeepsLocalState() async throws {

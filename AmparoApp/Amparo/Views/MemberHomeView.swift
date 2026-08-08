@@ -26,9 +26,12 @@ struct MemberHomeView: View {
                         .accessibilityLabel(tile.displayName)
                     }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 4)
+                .padding(.bottom)
             }
             .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Amparo")

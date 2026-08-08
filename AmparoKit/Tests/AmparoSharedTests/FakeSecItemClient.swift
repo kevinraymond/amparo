@@ -9,6 +9,7 @@ final class FakeSecItemClient: SecItemClient, @unchecked Sendable {
     private var storage: [String: [CFString: Any]] = [:]
     private var nextAddStatus: OSStatus?
     private var nextCopyStatus: OSStatus?
+    private var copyCounts: [String: Int] = [:]
 
     func failNextAdd(with status: OSStatus) {
         lock.withLock { nextAddStatus = status }
@@ -38,9 +39,16 @@ final class FakeSecItemClient: SecItemClient, @unchecked Sendable {
                 return (status, nil)
             }
             let account = query[kSecAttrAccount] as! String
+            copyCounts[account, default: 0] += 1
             guard let attributes = storage[account] else { return (errSecItemNotFound, nil) }
             return (errSecSuccess, attributes[kSecValueData] as AnyObject?)
         }
+    }
+
+    /// On a real device every read of a biometry item prompts Face ID —
+    /// tests use this to pin the one-prompt-per-unlock rule (D19).
+    func readCount(for item: KeychainItem) -> Int {
+        lock.withLock { copyCounts[item.rawValue] ?? 0 }
     }
 
     func delete(_ query: [CFString: Any]) -> OSStatus {

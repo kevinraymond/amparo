@@ -1,9 +1,15 @@
 import SwiftUI
 
 /// M3-T5 — the single member-facing error surface (principle 4). Calm copy,
-/// one giant call button, no retry, no error codes, no technical text.
+/// one giant call button, no retry, no error codes, no technical text. The
+/// app self-heals from transient arrivals on the next foreground; for
+/// terminal ones, the caregiver's hidden door (5 s hold on the headline +
+/// PIN) opens settings so re-enrollment never requires a reinstall (D19).
 struct CallCaregiverView: View {
     @Environment(AppModel.self) private var model
+
+    @State private var showPINPrompt = false
+    @State private var showSettings = false
 
     var body: some View {
         VStack(spacing: 32) {
@@ -15,6 +21,9 @@ struct CallCaregiverView: View {
             Text(String(localized: "call.title"))
                 .font(.largeTitle.bold())
                 .multilineTextAlignment(.center)
+                .onLongPressGesture(minimumDuration: 5) {
+                    showPINPrompt = true
+                }
             if let caregiver = model.caregiver {
                 Text(String(format: String(localized: "call.body"), caregiver.name))
                     .font(.title2)
@@ -37,6 +46,12 @@ struct CallCaregiverView: View {
         }
         .padding(24)
         .dynamicTypeSize(DynamicTypeSize.accessibility1...DynamicTypeSize.accessibility5)
+        .sheet(isPresented: $showPINPrompt) {
+            PINPromptView { showSettings = true }
+        }
+        .sheet(isPresented: $showSettings) {
+            CaregiverSettingsView()
+        }
     }
 
     private func telURL(_ phone: String) -> URL? {

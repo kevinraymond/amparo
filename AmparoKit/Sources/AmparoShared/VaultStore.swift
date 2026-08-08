@@ -80,9 +80,18 @@ public struct CredentialSecrets: Equatable, Sendable {
 /// the biometry-protected keychain items — the system shows Face ID — and
 /// the derived keys stay cached in actor memory until `lock()` (app calls it
 /// on backgrounding). There is no lock screen; Face ID *is* the unlock.
+/// The single biometry-gated blob (D19): every biometry-protected SecItem
+/// read prompts Face ID separately, so all key material shares one item.
+struct VaultKeyMaterial: Codable {
+    var userKey: Data
+    var privateKeyDer: Data
+    var organizationKeys: [String: Data]
+}
+
 public actor VaultStore {
     private struct SessionKeys {
         let userKey: SymmetricCryptoKey
+        let privateKeyDer: Data
         var organizationKeys: [String: SymmetricCryptoKey]
     }
 
@@ -134,16 +143,18 @@ public actor VaultStore {
                 encryptedPrivateKey: encryptedPrivateKey
             )
             let privateKeyDer = try encryptedPrivateKey.decrypt(with: keys.userKey)
-            var organizationKeys: [String: String] = [:]
+            var organizationKeys: [String: Data] = [:]
             for organization in sync.profile.organizations {
                 guard let encKey = organization.key else { continue }
-                organizationKeys[organization.id] =
-                    try keys.organizationKey(from: encKey).keyData.base64EncodedString()
+                organizationKeys[organization.id] = try keys.organizationKey(from: encKey).keyData
             }
 
-            try keychain.store(keys.userKey.keyData, for: .userKey)
-            try keychain.store(privateKeyDer, for: .privateKey)
-            try keychain.store(JSONEncoder().encode(organizationKeys), for: .orgKeys)
+            let material = VaultKeyMaterial(
+                userKey: keys.userKey.keyData,
+                privateKeyDer: privateKeyDer,
+                organizationKeys: organizationKeys
+            )
+            try keychain.store(JSONEncoder().encode(material), for: .vaultKeys)
             try keychain.store(Data(request.serverURL.absoluteString.utf8), for: .serverURL)
             try keychain.store(Data(email.utf8), for: .email)
             try keychain.store(Data(deviceIdentifier.uuidString.lowercased().utf8), for: .deviceIdentifier)
@@ -159,11 +170,13 @@ public actor VaultStore {
     }
 
     /// Purge all secrets and sync state — enrollment reset and the
-    /// reenroll-required path (§6.3). The caregiver's contact card and the
-    /// consent record survive: after a purge the only screen left is
-    /// call-caregiver, and it needs the phone number (principle 4).
+    /// reenroll-required path (§6.3). The caregiver's contact card, the
+    /// consent record, and the caregiver PIN survive: after a purge the only
+    /// screen left is call-caregiver, and it needs the phone number
+    /// (principle 4) plus a working hidden door so the caregiver can
+    /// re-enroll without reinstalling (D19).
     public func reset() {
-        keychain.purgeEverything(except: [.caregiverProfile, .consentRecord])
+        keychain.purgeEverything(except: [.caregiverProfile, .consentRecord, .caregiverPIN])
         cipherStore.wipe()
         sessionKeys = nil
         client = nil
@@ -263,25 +276,24 @@ public actor VaultStore {
     private func ensureUnlocked() throws -> SessionKeys {
         if let sessionKeys { return sessionKeys }
         guard isEnrolled() else { throw VaultStoreError.notEnrolled }
-        // Biometry-protected reads: the system prompts Face ID here.
-        guard let userKeyData = try keychain.read(.userKey) else {
+        // The one biometry-protected read: the system prompts Face ID here,
+        // exactly once per unlocked session (D19).
+        guard let blob = try keychain.read(.vaultKeys) else {
             throw VaultStoreError.biometryInvalidated
         }
+        guard let material = try? JSONDecoder().decode(VaultKeyMaterial.self, from: blob) else {
+            throw VaultStoreError.storeCorrupted
+        }
         var organizationKeys: [String: SymmetricCryptoKey] = [:]
-        if let orgData = try keychain.read(.orgKeys) {
-            guard let decoded = try? JSONDecoder().decode([String: String].self, from: orgData) else {
+        for (orgId, raw) in material.organizationKeys {
+            guard let key = try? SymmetricCryptoKey(data: raw) else {
                 throw VaultStoreError.storeCorrupted
             }
-            for (orgId, base64) in decoded {
-                guard let raw = Data(base64Encoded: base64),
-                      let key = try? SymmetricCryptoKey(data: raw) else {
-                    throw VaultStoreError.storeCorrupted
-                }
-                organizationKeys[orgId] = key
-            }
+            organizationKeys[orgId] = key
         }
         let keys = SessionKeys(
-            userKey: try SymmetricCryptoKey(data: userKeyData),
+            userKey: try SymmetricCryptoKey(data: material.userKey),
+            privateKeyDer: material.privateKeyDer,
             organizationKeys: organizationKeys
         )
         sessionKeys = keys
@@ -289,29 +301,36 @@ public actor VaultStore {
     }
 
     /// Key selection per §6.4, with late unwrap for an organization that
-    /// appeared after enrollment (needs the biometry-protected private key;
-    /// the unlocked session means Face ID already happened). nil = no key
-    /// path for this cipher — skip it, never guess.
+    /// appeared after enrollment (the private key is already in the session
+    /// material — no extra Face ID). nil = no key path for this cipher —
+    /// skip it, never guess.
     private func decryptionKey(for cipher: Cipher, snapshot: VaultSnapshot) -> SymmetricCryptoKey? {
         guard var keys = sessionKeys else { return nil }
         guard let orgId = cipher.organizationId else { return keys.userKey }
         if let known = keys.organizationKeys[orgId] { return known }
         guard let serialized = snapshot.organizationKeyStrings[orgId],
               let encKey = try? EncString(parsing: serialized),
-              let privateDer = try? keychain.read(.privateKey),
-              let privateKey = try? RSAPrivateKey(pkcs8Der: privateDer),
+              let privateKey = try? RSAPrivateKey(pkcs8Der: keys.privateKeyDer),
               let unwrapped = try? SymmetricCryptoKey(data: privateKey.decrypt(encKey))
         else { return nil }
         keys.organizationKeys[orgId] = unwrapped
         sessionKeys = keys
-        // Persist so the next session skips the RSA unwrap.
-        var stored = (try? keychain.read(.orgKeys))
-            .flatMap { try? JSONDecoder().decode([String: String].self, from: $0) } ?? [:]
-        stored[orgId] = unwrapped.keyData.base64EncodedString()
-        if let encoded = try? JSONEncoder().encode(stored) {
-            try? keychain.store(encoded, for: .orgKeys)
-        }
+        persistSessionMaterial()  // next session skips the RSA unwrap
         return unwrapped
+    }
+
+    /// Rebuild and rewrite the biometry blob from the unlocked session
+    /// (writes never prompt; only reads are gated).
+    private func persistSessionMaterial() {
+        guard let keys = sessionKeys else { return }
+        let material = VaultKeyMaterial(
+            userKey: keys.userKey.keyData,
+            privateKeyDer: keys.privateKeyDer,
+            organizationKeys: keys.organizationKeys.mapValues(\.keyData)
+        )
+        if let encoded = try? JSONEncoder().encode(material) {
+            try? keychain.store(encoded, for: .vaultKeys)
+        }
     }
 
     @discardableResult

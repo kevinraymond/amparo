@@ -24,8 +24,8 @@ struct KeychainStoreTests {
 
     @Test func biometryItemsCarryAccessControlNotAccessible() throws {
         let store = makeStore()
-        try store.store(Data(count: 64), for: .userKey)
-        let attributes = try #require(fake.attributes(for: .userKey))
+        try store.store(Data(count: 64), for: .vaultKeys)
+        let attributes = try #require(fake.attributes(for: .vaultKeys))
         #expect(attributes[kSecAttrAccessControl] != nil)
         #expect(attributes[kSecAttrAccessible] == nil)
         #expect(attributes[kSecAttrService] as? String == "test.amparo")
@@ -49,7 +49,7 @@ struct KeychainStoreTests {
     }
 
     @Test func missingItemReadsAsNil() throws {
-        #expect(try makeStore().read(.userKey) == nil)
+        #expect(try makeStore().read(.vaultKeys) == nil)
     }
 
     @Test func deleteThenReadIsNil() throws {
@@ -61,7 +61,7 @@ struct KeychainStoreTests {
 
     @Test func purgeEverythingClearsAllSlots() throws {
         let store = makeStore()
-        try store.store(Data(count: 64), for: .userKey)
+        try store.store(Data(count: 64), for: .vaultKeys)
         try store.store(Data("rt".utf8), for: .refreshToken)
         try store.store(Data("e".utf8), for: .email)
         store.purgeEverything()
@@ -71,11 +71,11 @@ struct KeychainStoreTests {
     @Test func authStatusesMapToTypedErrors() throws {
         let store = makeStore()
         fake.failNextCopy(with: errSecUserCanceled)
-        #expect(throws: KeychainError.userCancelledAuth) { try store.read(.userKey) }
+        #expect(throws: KeychainError.userCancelledAuth) { try store.read(.vaultKeys) }
         fake.failNextCopy(with: errSecAuthFailed)
-        #expect(throws: KeychainError.authenticationFailed) { try store.read(.userKey) }
+        #expect(throws: KeychainError.authenticationFailed) { try store.read(.vaultKeys) }
         fake.failNextCopy(with: errSecInteractionNotAllowed)
-        #expect(throws: KeychainError.unhandled(errSecInteractionNotAllowed)) { try store.read(.userKey) }
+        #expect(throws: KeychainError.unhandled(errSecInteractionNotAllowed)) { try store.read(.vaultKeys) }
     }
 
     @Test func storeFailureSurfacesStatus() throws {
