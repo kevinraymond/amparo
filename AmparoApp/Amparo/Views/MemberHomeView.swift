@@ -8,8 +8,7 @@ struct MemberHomeView: View {
     @Environment(AppModel.self) private var model
     let tiles: [MemberTile]
 
-    @State private var showPINPrompt = false
-    @State private var showSettings = false
+    @State private var showCaregiverDoor = false
 
     var body: some View {
         NavigationStack {
@@ -37,7 +36,7 @@ struct MemberHomeView: View {
                     Text("Amparo")
                         .font(.title2.bold())
                         .onLongPressGesture(minimumDuration: 5) {
-                            showPINPrompt = true
+                            showCaregiverDoor = true
                         }
                         .accessibilityHidden(true)
                 }
@@ -45,11 +44,8 @@ struct MemberHomeView: View {
             .navigationDestination(for: MemberTile.self) { tile in
                 CredentialDetailView(tile: tile)
             }
-            .sheet(isPresented: $showPINPrompt) {
-                PINPromptView { showSettings = true }
-            }
-            .sheet(isPresented: $showSettings) {
-                CaregiverSettingsView()
+            .sheet(isPresented: $showCaregiverDoor) {
+                CaregiverDoorSheet()
             }
         }
         .dynamicTypeSize(DynamicTypeSize.accessibility1...DynamicTypeSize.accessibility5)
@@ -119,39 +115,45 @@ struct LockedView: View {
     }
 }
 
-struct PINPromptView: View {
+/// One sheet, two stages: PIN gate, then settings swap in-place. A
+/// dismiss-then-present handoff between two sheets can drop the second
+/// presentation mid-animation — this shape has no handoff to drop.
+struct CaregiverDoorSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
-    let onSuccess: () -> Void
 
+    @State private var unlocked = false
     @State private var pin = ""
     @State private var failed = false
 
     var body: some View {
-        NavigationStack {
-            Form {
-                SecureField("Caregiver PIN", text: $pin)
-                    .keyboardType(.numberPad)
-                if failed {
-                    Text("Wrong PIN").foregroundStyle(.red)
-                }
-                Button("Open settings") {
-                    Task {
-                        if await model.vault.verifyCaregiverPIN(pin) {
-                            dismiss()
-                            onSuccess()
-                        } else {
-                            failed = true
-                            pin = ""
+        if unlocked {
+            CaregiverSettingsView()
+        } else {
+            NavigationStack {
+                Form {
+                    SecureField("Caregiver PIN", text: $pin)
+                        .keyboardType(.numberPad)
+                    if failed {
+                        Text("Wrong PIN").foregroundStyle(.red)
+                    }
+                    Button("Open settings") {
+                        Task {
+                            if await model.vault.verifyCaregiverPIN(pin) {
+                                unlocked = true
+                            } else {
+                                failed = true
+                                pin = ""
+                            }
                         }
                     }
+                    .disabled(pin.count < 4)
                 }
-                .disabled(pin.count < 4)
-            }
-            .navigationTitle("Caregiver access")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                .navigationTitle("Caregiver access")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                    }
                 }
             }
         }

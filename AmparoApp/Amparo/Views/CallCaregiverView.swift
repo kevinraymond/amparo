@@ -8,8 +8,7 @@ import SwiftUI
 struct CallCaregiverView: View {
     @Environment(AppModel.self) private var model
 
-    @State private var showPINPrompt = false
-    @State private var showSettings = false
+    @State private var showCaregiverDoor = false
 
     var body: some View {
         VStack(spacing: 32) {
@@ -22,7 +21,7 @@ struct CallCaregiverView: View {
                 .font(.largeTitle.bold())
                 .multilineTextAlignment(.center)
                 .onLongPressGesture(minimumDuration: 5) {
-                    showPINPrompt = true
+                    showCaregiverDoor = true
                 }
             if let caregiver = model.caregiver {
                 Text(String(format: String(localized: "call.body"), caregiver.name))
@@ -46,11 +45,8 @@ struct CallCaregiverView: View {
         }
         .padding(24)
         .dynamicTypeSize(DynamicTypeSize.accessibility1...DynamicTypeSize.accessibility5)
-        .sheet(isPresented: $showPINPrompt) {
-            PINPromptView { showSettings = true }
-        }
-        .sheet(isPresented: $showSettings) {
-            CaregiverSettingsView()
+        .sheet(isPresented: $showCaregiverDoor) {
+            CaregiverDoorSheet()
         }
     }
 
