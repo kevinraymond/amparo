@@ -19,10 +19,10 @@ The handoff doc defines the tasks; this file records their state. One session
 - [x] M1-T4 RSA OAEP unwrap (types 3/4, PKCS#8→PKCS#1 DER unwrap); SymmetricCryptoKey; org-key path
 - [x] M1-T5 E2E vector: `AccountUnlock` chain decrypts all 3 fixture ciphers = `bw` output (`e2e-vectors.json`; regenerate with `fixtures/gen-vectors.mjs` after re-seed)
 
-### M2 — AmparoAPI (P1) — pending
-- [ ] M2-T1 prelogin/token/refresh
-- [ ] M2-T2 sync + models
-- [ ] M2-T3 integration suite vs dev VW (env-gated `AMPARO_VW_URL`)
+### M2 — AmparoAPI (P1) ✅ 2026-08-08
+- [x] M2-T1 prelogin/token/refresh (`VaultwardenClient` actor + `HTTPTransport` seam; Auth-Email unpadded b64url on password grant only; exact form encoding pinned by tests)
+- [x] M2-T2 sync + models (lossy cipher decode, casing-tolerant decoder, `EncString` Codable, reactive 401→refresh→retry-once single-flight, icons)
+- [x] M2-T3 integration suite vs dev VW (env-gated `AMPARO_VW_URL`, self-skips with pointer) incl. garbage-refresh-token → `AmparoError.reenrollRequired` (D15)
 
 ### M3 — App (P2) — pending
 - [ ] M3-T1 Keychain layer · M3-T2 enrollment · M3-T3 member UI · M3-T4 sync/store/icons · M3-T5 call-caregiver screen
@@ -41,6 +41,7 @@ The handoff doc defines the tasks; this file records their state. One session
 |---|---|---|
 | 2026-08-08 | M0 complete | Commit `044f5f6`. Dev stack live (`http://localhost:8222`, `https://localhost:8443` via Caddy internal CA), fixtures seeded + idempotent. §6.1–6.3 crypto behaviorally validated via `fixtures/register-helper.mjs` (accounts/org/confirm) + official `bw` (ciphers). Decisions D6–D8. |
 | 2026-08-08 | M1 complete | AmparoKit package (tools 6.0, swift-testing): AmparoCrypto full §6 crypto, 26 tests green in ~0.1s. AmparoAPI is a buildable placeholder for M2. Vector pipeline: `fixtures/gen-vectors.mjs` → committed `e2e-vectors.json`. Decisions D9–D11. This file + CLAUDE.md pointer added. |
+| 2026-08-08 | M2 complete | AmparoAPI protocol client: 26 new unit tests (captured-sample driven) + 7 integration tests, 59 total green; integration decrypts all 10 fixture ciphers via both key paths against live VW. New `fixtures/capture-samples.mjs` → committed raw API samples incl. real 2FA challenge (throwaway authenticator account, kept for re-runs). Observed + documented: no refresh-token rotation; wrong-password ≠ `invalid_grant`; `deletedDate` (§6.3/§6.4 corrected in place). Decisions D12–D15. |
 
 ## Environment notes (dev host)
 

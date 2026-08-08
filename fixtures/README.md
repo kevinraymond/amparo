@@ -27,6 +27,26 @@ touches a real Bitwarden CLI config.
 Results (IDs, URLs, credentials) land in `fixtures.env`; integration tests
 read `AMPARO_VW_URL` from it (handoff §5).
 
+## Generated test resources (re-run after re-seeding, in this order)
+
+```sh
+./fixtures/seed.sh
+node fixtures/gen-vectors.mjs        # → AmparoKit/.../AmparoCryptoTests/Resources/e2e-vectors.json
+node fixtures/capture-samples.mjs    # → AmparoKit/.../AmparoAPITests/Resources/*.json
+```
+
+- `gen-vectors.mjs` — M1 crypto vectors: raw EncStrings from the live API,
+  expected plaintexts from official `bw` output.
+- `capture-samples.mjs` — M2 API samples: raw HTTP bodies (prelogin, token
+  success/wrong-password/invalid-refresh/2FA-challenge, sync), each enveloped
+  as `{captured, request, status, body}`. The 2FA sample comes from a
+  dedicated throwaway account (`twofa-sample@amparo.test`) that is created
+  once and kept with authenticator 2FA enabled so re-runs are instant; it is
+  invisible to `seed.sh` and the member/caregiver fixtures.
+
+`sync-success.json` and `e2e-vectors.json` covary (cipher IDs and EncStrings
+change on re-seed) — always regenerate both together.
+
 ## What gets created
 
 | | |

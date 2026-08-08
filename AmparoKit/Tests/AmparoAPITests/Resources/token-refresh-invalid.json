@@ -1,0 +1,8 @@
+{
+  "captured": "2026-08-08",
+  "request": "POST /identity/connect/token (refresh grant, garbage token)",
+  "status": 400,
+  "body": {
+    "error": "invalid_grant"
+  }
+}

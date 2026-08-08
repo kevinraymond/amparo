@@ -1,0 +1,18 @@
+{
+  "captured": "2026-08-08",
+  "request": "POST /identity/connect/token (password grant, authenticator 2FA enabled)",
+  "status": 400,
+  "body": {
+    "error": "invalid_grant",
+    "error_description": "Two factor required.",
+    "TwoFactorProviders": [
+      "0"
+    ],
+    "TwoFactorProviders2": {
+      "0": null
+    },
+    "MasterPasswordPolicy": {
+      "Object": "masterPasswordPolicy"
+    }
+  }
+}

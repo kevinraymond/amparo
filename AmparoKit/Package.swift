@@ -16,5 +16,14 @@ let package = Package(
             dependencies: ["AmparoCrypto"],
             resources: [.copy("Resources")]
         ),
+        .testTarget(
+            name: "AmparoAPITests",
+            dependencies: ["AmparoAPI", "AmparoCrypto"],
+            resources: [.copy("Resources")]
+        ),
+        .testTarget(
+            name: "AmparoAPIIntegrationTests",
+            dependencies: ["AmparoAPI", "AmparoCrypto"]
+        ),
     ]
 )

@@ -181,13 +181,14 @@ Derived from the Bitwarden Security Whitepaper + public API documentation. Verif
   Header: `Auth-Email: base64url(email)`.
 - Response: `access_token` (JWT, ~1–2h), `refresh_token`, `Key`, `PrivateKey`, `Kdf`, `KdfIterations`.
 - Refresh: `grant_type=refresh_token`. On refresh failure (revocation, key rotation, deactivation): purge local state → call-caregiver screen. **Never** prompt the member for credentials.
+- Observed against Vaultwarden (M2, captured in `AmparoKit/Tests/AmparoAPITests/Resources/`): refresh **does not rotate** the refresh token and its 200 body carries only the OAuth fields (no `Key`/`PrivateKey` — those come on the password grant); wrong password ⇒ 400 with **empty** `error` and the prose in `errorModel.message` (not `invalid_grant`); invalid/revoked refresh token ⇒ 400 bare `{"error":"invalid_grant"}`; 2FA challenge ⇒ 400 `invalid_grant` **plus** PascalCase `TwoFactorProviders`/`TwoFactorProviders2` keys — detect 2FA before classifying on `error`. Token bodies mix snake_case OAuth fields with PascalCase Bitwarden fields.
 - 2FA: not used for the member account (runbook disables; the account is reachable only over the tailnet). If the server returns a 2FA challenge anyway → call-caregiver screen.
 - New-device verification emails (Bitwarden 2024.12+ behavior): Vaultwarden exposes toggles; runbook disables for the member account. Client must still surface any unexpected 4xx as call-caregiver, never as raw error text.
 
 ### 6.4 Sync & models
 - `GET /api/sync?excludeDomains=true` (Bearer) → `{profile, folders, collections, ciphers, policies, sends}`.
 - We consume: `profile.key`, `profile.privateKey`, `profile.organizations[{id, key}]`, `ciphers[]`.
-- Cipher (type 1 = Login only in v1): `{id, organizationId?, type, name(Enc), login: {username(Enc)?, password(Enc)?, totp(Enc)?, uris:[{uri(Enc), match?}]}, revisionDate, deleted?}`.
+- Cipher (type 1 = Login only in v1): `{id, organizationId?, type, name(Enc), login: {username(Enc)?, password(Enc)?, totp(Enc)?, uris:[{uri(Enc), match?}]}, revisionDate, deletedDate?}` (observed: the trash marker is `deletedDate`, not `deleted`; sync bodies are camelCase).
 - Key selection: `organizationId == nil` → User Symmetric Key; else org key. Both paths in fixtures.
 - Persistence: single encrypted store (see §7.3). Poll on foreground + manual "Atualizar" in caregiver-hidden settings; WebSocket push is a P4 nice-to-have (Vaultwarden supports `/notifications/hub`).
 
@@ -317,6 +318,10 @@ Listing copy: "assisted access for the account holder, managed by a helper they 
 | D9 | 2026-08-08 | AmparoKit: swift-tools 6.0, swift-testing for unit tests | Toolchain on hand is Swift 6.3/Xcode 26; exceeds handoff's 5.10/16 minimums |
 | D10 | 2026-08-08 | M1 vectors = committed `e2e-vectors.json`, generated behaviorally (`fixtures/gen-vectors.mjs`: raw EncStrings from live API, plaintexts from `bw`) | Unit tests run offline; regenerate after re-seed; dev-only key material, committing intended |
 | D11 | 2026-08-08 | EncString: types 5/6 parse but refuse decrypt; type 1 (AES-128) rejected as unknown | Outside §6.2 table / never emitted by target servers; no test data exists to validate a decrypt path |
+| D12 | 2026-08-08 | AmparoAPI = one `VaultwardenClient` actor over a 1-method `HTTPTransport` protocol; tokens in actor memory only; refresh-token durability + deviceIdentifier persistence delegated to caller via init params + `onTokensUpdated` (M3 Keychain); sync auth is reactive 401→refresh→retry-once, single-flight | Sendable-correct token state under Swift 6 strict concurrency; trivial unit stubbing; package stays Keychain-free and zero-dependency; app and autofill extension each own a client |
+| D13 | 2026-08-08 | Decoding: shared lowercase-first-letter custom key strategy (Swift transposition of the fixtures' `field()` accessor); `EncString` gains Codable in AmparoCrypto; ciphers lossy-decoded (bad element dropped, non-Login kept but filtered from `loginCiphers`); profile decodes strictly; dates stay `String` until M3 | Token bodies mix casings, sync is camelCase (captured samples); one exotic cipher must not kill sync, but an account without keys is unusable |
+| D14 | 2026-08-08 | `AmparoError` = 7 cases, each mapped to one member outcome (purge+call / retry-later / call-caregiver). 2FA detected via `TwoFactorProviders*` key in the token 400 body, validated against a real captured challenge (`token-2fa.json`, throwaway authenticator-2FA account); wrong password classified as any non-2FA 400 because Vaultwarden sends empty `error` there | Handoff principle 4: the app maps cases, never surfaces raw errors; captured bodies beat guessed OAuth shapes — observed wrong-password is **not** `invalid_grant` |
+| D15 | 2026-08-08 | Revoked-token coverage = garbage refresh token in the integration suite (server's real `invalid_grant` → `.reenrollRequired`); admin-deauth variant deferred as hardening. Raw API samples committed under `AmparoAPITests/Resources/` (extends D10); transport/5xx failures during refresh are `offline`/`serverUnavailable`, never the purge signal | Deterministic, zero ADMIN_TOKEN plumbing, no server-state mutation; offline members must keep the local vault (principle 5) |
 
 ## 13. Open questions
 - Assistive Access × third-party autofill: empirical answer needed (M4-T3).

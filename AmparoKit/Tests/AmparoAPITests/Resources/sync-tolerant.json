@@ -1,0 +1,57 @@
+{
+  "captured": "hand-written",
+  "request": "synthetic sync body: PascalCase keys, explicit nulls, unknown fields, a non-Login cipher, one undecodable cipher element",
+  "status": 200,
+  "body": {
+    "Profile": {
+      "Id": "profile-1",
+      "Email": null,
+      "Key": "2.QUJDREVGR0hJSktMTU5PUA==|c2VjcmV0LWJsb2I=|QUJDREVGR0hJSktMTU5PUA==",
+      "PrivateKey": "2.QUJDREVGR0hJSktMTU5PUA==|c2VjcmV0LWJsb2I=|QUJDREVGR0hJSktMTU5PUA==",
+      "Organizations": [
+        {
+          "Id": "org-1",
+          "Key": "4.c2VjcmV0LWJsb2I=",
+          "UnknownOrgField": 7
+        }
+      ],
+      "UnknownProfileField": { "nested": true }
+    },
+    "Ciphers": [
+      {
+        "Id": "c-login",
+        "Type": 1,
+        "OrganizationId": null,
+        "Name": "2.QUJDREVGR0hJSktMTU5PUA==|c2VjcmV0LWJsb2I=|QUJDREVGR0hJSktMTU5PUA==",
+        "DeletedDate": null,
+        "RevisionDate": "2026-08-08T00:00:00.000000Z",
+        "Login": {
+          "Username": "2.QUJDREVGR0hJSktMTU5PUA==|c2VjcmV0LWJsb2I=|QUJDREVGR0hJSktMTU5PUA==",
+          "Password": null,
+          "Totp": null,
+          "Uris": [
+            { "Uri": "2.QUJDREVGR0hJSktMTU5PUA==|c2VjcmV0LWJsb2I=|QUJDREVGR0hJSktMTU5PUA==", "Match": null }
+          ]
+        },
+        "FutureCipherField": [1, 2, 3]
+      },
+      {
+        "Id": "c-note",
+        "Type": 2,
+        "Name": "2.QUJDREVGR0hJSktMTU5PUA==|c2VjcmV0LWJsb2I=|QUJDREVGR0hJSktMTU5PUA==",
+        "SecureNote": { "Type": 0 }
+      },
+      {
+        "Id": "c-trashed",
+        "Type": 1,
+        "Name": "2.QUJDREVGR0hJSktMTU5PUA==|c2VjcmV0LWJsb2I=|QUJDREVGR0hJSktMTU5PUA==",
+        "DeletedDate": "2026-01-01T00:00:00.000000Z"
+      },
+      {
+        "Id": 42,
+        "Type": "not-a-number"
+      }
+    ],
+    "UnknownTopLevel": [true, false]
+  }
+}
