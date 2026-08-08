@@ -23,13 +23,7 @@ final class AppModel {
     private let iconCache: IconCache
 
     init() {
-        let keychain = KeychainStore(
-            configuration: .init(service: "onl.kev.amparo", accessGroup: "group.onl.kev.amparo")
-        )
-        let cipherStore = CipherStore.appGroup() ?? CipherStore(
-            fileURL: URL.applicationSupportDirectory.appendingPathComponent("vault-snapshot.json")
-        )
-        self.vault = VaultStore(keychain: keychain, cipherStore: cipherStore)
+        self.vault = VaultStore.makeShared()
         self.iconCache = IconCache(directory: URL.cachesDirectory.appendingPathComponent("icons"))
     }
 
@@ -49,7 +43,11 @@ final class AppModel {
     /// terminal.
     func unlock() async {
         do {
-            phase = .home(try await vault.tiles())
+            let tiles = try await vault.tiles()
+            phase = .home(tiles)
+            // QuickType registration happens here, not post-sync: only an
+            // unlocked session has decrypted domains/usernames (D20).
+            await CredentialIdentityRegistrar.update(from: tiles)
         } catch is KeychainError {
             phase = .locked
         } catch {
@@ -75,6 +73,7 @@ final class AppModel {
             await refreshFromServer()
             if let tiles = try? await vault.tiles() {
                 phase = .home(tiles)
+                await CredentialIdentityRegistrar.update(from: tiles)
             }
         case .callCaregiver:
             // Self-heal: if the vault wasn't actually purged (transient
@@ -96,6 +95,7 @@ final class AppModel {
 
     func resetEnrollment() async {
         await vault.reset()
+        await CredentialIdentityRegistrar.removeAll()
         phase = .enrollment
     }
 

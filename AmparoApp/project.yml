@@ -22,6 +22,7 @@ targets:
     dependencies:
       - package: AmparoKit
         products: [AmparoShared, AmparoAPI, AmparoCrypto]
+      - target: AmparoAutofill
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: onl.kev.amparo
@@ -41,5 +42,33 @@ targets:
         # App-group keychain sharing: this entitlement alone covers both the
         # shared container and kSecAttrAccessGroup = "group.onl.kev.amparo".
         # (keychain-access-groups is only for $(AppIdentifierPrefix) groups.)
+        com.apple.security.application-groups:
+          - group.onl.kev.amparo
+  AmparoAutofill:
+    type: app-extension
+    platform: iOS
+    sources: [AmparoAutofill]
+    dependencies:
+      - package: AmparoKit
+        products: [AmparoShared, AmparoAPI, AmparoCrypto]
+    info:
+      path: AmparoAutofill/Info.plist
+      properties:
+        CFBundleDisplayName: Amparo   # shown in Settings → AutoFill & Passwords
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.authentication-services-credential-provider-ui
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).CredentialProviderViewController
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: onl.kev.amparo.autofill
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+        SKIP_INSTALL: YES
+    entitlements:
+      path: AmparoAutofill/AmparoAutofill.entitlements
+      properties:
+        com.apple.developer.authentication-services.autofill-credential-provider: true
         com.apple.security.application-groups:
           - group.onl.kev.amparo

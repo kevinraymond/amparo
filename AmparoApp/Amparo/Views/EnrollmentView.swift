@@ -120,14 +120,14 @@ struct AutofillWalkthroughView: View {
 
     var body: some View {
         List {
-            Section("Enable AutoFill (after the M4 update)") {
+            Section("Enable AutoFill") {
                 Text("1. Open Settings → General → AutoFill & Passwords.")
                 Text("2. Under \"AutoFill from\", enable Amparo.")
                 Text("3. Turn off other password sources to avoid confusing suggestions.")
             }
             Section("Before handing the device over") {
-                Text("Open a saved site once and confirm the password fills after Face ID.")
-                Text("The member never needs this screen: everything below is automatic.")
+                Text("Open the app once so suggestions register, then open a saved site and confirm the password fills after Face ID.")
+                Text("The member never needs this screen: everything else is automatic.")
             }
             Section {
                 Button {

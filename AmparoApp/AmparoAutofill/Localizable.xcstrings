@@ -1,0 +1,30 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "cancel" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Cancelar" } }
+      }
+    },
+    "unlock.button" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unlock" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Abrir" } }
+      }
+    },
+    "call.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Something needs attention" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Algo precisa de atenção" } }
+      }
+    },
+    "call.body.generic" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Call your family for help with this app." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ligue para sua família para ajudar com este aplicativo." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
