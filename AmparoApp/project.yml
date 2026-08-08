@@ -56,6 +56,10 @@ targets:
       properties:
         CFBundleDisplayName: Amparo   # shown in Settings → AutoFill & Passwords
         NSExtension:
+          NSExtensionAttributes:
+            # Required for the provider to be listed on modern iOS.
+            ASCredentialProviderExtensionCapabilities:
+              ProvidesPasswords: true
           NSExtensionPointIdentifier: com.apple.authentication-services-credential-provider-ui
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).CredentialProviderViewController
     settings:
