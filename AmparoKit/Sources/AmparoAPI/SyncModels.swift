@@ -50,7 +50,7 @@ public struct Profile: Decodable, Sendable {
 
 /// `profile.organizations[]` — only the org key matters (type 4 EncString,
 /// unwrapped via `AccountKeys.organizationKey(from:)`).
-public struct ProfileOrganization: Decodable, Sendable {
+public struct ProfileOrganization: Codable, Equatable, Sendable {
     public let id: String
     public let key: EncString?
 }
@@ -59,7 +59,9 @@ public struct ProfileOrganization: Decodable, Sendable {
 /// decrypts it on demand (§7.3). Key selection: `organizationId == nil` →
 /// user key, else org key (§6.4). Trash is `deletedDate` (observed; §6.4
 /// corrected from `deleted?`). Dates stay strings until M3 needs them.
-public struct Cipher: Decodable, Sendable {
+/// Codable both ways: decoded from sync, re-encoded into the local §7.3
+/// store (ciphers persist encrypted as received).
+public struct Cipher: Codable, Equatable, Sendable {
     public let id: String
     public let organizationId: String?
     public let type: Int
@@ -69,14 +71,14 @@ public struct Cipher: Decodable, Sendable {
     public let deletedDate: String?
 }
 
-public struct LoginData: Decodable, Sendable {
+public struct LoginData: Codable, Equatable, Sendable {
     public let username: EncString?
     public let password: EncString?
     public let totp: EncString?
     public let uris: [LoginURI]?
 }
 
-public struct LoginURI: Decodable, Sendable {
+public struct LoginURI: Codable, Equatable, Sendable {
     public let uri: EncString?
     public let match: Int?
 }

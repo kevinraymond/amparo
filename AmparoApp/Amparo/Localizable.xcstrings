@@ -1,0 +1,72 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "unlock.button" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unlock" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Abrir" } }
+      }
+    },
+    "copy.password" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy password" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Copiar senha" } }
+      }
+    },
+    "copied" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copied!" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Copiado!" } }
+      }
+    },
+    "reveal.show" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar" } }
+      }
+    },
+    "reveal.hide" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ocultar" } }
+      }
+    },
+    "username.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "User" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Usuário" } }
+      }
+    },
+    "code.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Security code" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Código de segurança" } }
+      }
+    },
+    "call.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Something needs attention" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Algo precisa de atenção" } }
+      }
+    },
+    "call.body" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Call %@ and they will fix it." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ligue para %@ e tudo será resolvido." } }
+      }
+    },
+    "call.button" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Call %@" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ligar para %@" } }
+      }
+    },
+    "call.body.generic" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Call your family for help with this app." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ligue para sua família para ajudar com este aplicativo." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

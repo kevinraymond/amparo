@@ -1,0 +1,44 @@
+# Regenerate the Xcode project with `xcodegen` from this directory.
+# The .xcodeproj is gitignored; this file is the source of truth.
+name: Amparo
+options:
+  bundleIdPrefix: onl.kev
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+packages:
+  AmparoKit:
+    path: ../AmparoKit
+settings:
+  base:
+    DEVELOPMENT_TEAM: YZ3CLPWK4A
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+targets:
+  Amparo:
+    type: application
+    platform: iOS
+    sources: [Amparo]
+    dependencies:
+      - package: AmparoKit
+        products: [AmparoShared, AmparoAPI, AmparoCrypto]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: onl.kev.amparo
+        PRODUCT_NAME: Amparo
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+        INFOPLIST_KEY_NSFaceIDUsageDescription: Face ID keeps your passwords protected.
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+    entitlements:
+      path: Amparo/Amparo.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.onl.kev.amparo
+        keychain-access-groups:
+          - group.onl.kev.amparo

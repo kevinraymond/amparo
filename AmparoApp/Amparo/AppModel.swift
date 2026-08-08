@@ -1,0 +1,116 @@
+import AmparoAPI
+import AmparoShared
+import SwiftUI
+
+/// App-level state machine. The routing rule is handoff principle 4: every
+/// member-facing failure terminates at the call-caregiver screen; the only
+/// exceptions are Face ID cancellation (retryable, `.locked`) and background
+/// sync hiccups (member keeps working from the snapshot).
+@MainActor
+@Observable
+final class AppModel {
+    enum Phase {
+        case loading
+        case enrollment
+        case locked
+        case home([MemberTile])
+        case callCaregiver
+    }
+
+    private(set) var phase: Phase = .loading
+    private(set) var caregiver: CaregiverProfile?
+    let vault: VaultStore
+    private let iconCache: IconCache
+
+    init() {
+        let keychain = KeychainStore(
+            configuration: .init(service: "onl.kev.amparo", accessGroup: "group.onl.kev.amparo")
+        )
+        let cipherStore = CipherStore.appGroup() ?? CipherStore(
+            fileURL: URL.applicationSupportDirectory.appendingPathComponent("vault-snapshot.json")
+        )
+        self.vault = VaultStore(keychain: keychain, cipherStore: cipherStore)
+        self.iconCache = IconCache(directory: URL.cachesDirectory.appendingPathComponent("icons"))
+    }
+
+    func start() async {
+        caregiver = await vault.caregiverProfile()
+        guard await vault.isEnrolled() else {
+            phase = .enrollment
+            return
+        }
+        await unlock()
+    }
+
+    /// Reading the vault triggers Face ID (§7.3) — this *is* the unlock UX.
+    func unlock() async {
+        do {
+            phase = .home(try await vault.tiles())
+        } catch KeychainError.userCancelledAuth, KeychainError.authenticationFailed {
+            phase = .locked
+        } catch {
+            failToHuman()
+        }
+    }
+
+    func enteredBackground() {
+        Task { await vault.lock() }
+        if case .home = phase {
+            phase = .locked
+        }
+    }
+
+    func becameActive() async {
+        switch phase {
+        case .loading:
+            await start()
+        case .locked:
+            await refreshFromServer()
+            await unlock()
+        case .home:
+            await refreshFromServer()
+            if let tiles = try? await vault.tiles() {
+                phase = .home(tiles)
+            }
+        case .enrollment, .callCaregiver:
+            break
+        }
+    }
+
+    func completeEnrollment() async {
+        caregiver = await vault.caregiverProfile()
+        await unlock()
+    }
+
+    func resetEnrollment() async {
+        await vault.reset()
+        phase = .enrollment
+    }
+
+    func failToHuman() {
+        phase = .callCaregiver
+    }
+
+    func icon(for domain: String?) async -> UIImage? {
+        guard let domain else { return nil }
+        let vault = vault
+        let data = await iconCache.icon(for: domain) { domain in
+            await vault.fetchIconData(domain: domain)
+        }
+        return data.flatMap(UIImage.init(data:))
+    }
+
+    /// Foreground sync. Offline or a flaky server never disturbs the member
+    /// (local-first, principle 5); only a definitive revocation — which has
+    /// already purged secrets — changes the screen.
+    private func refreshFromServer() async {
+        guard await vault.isEnrolled() else { return }
+        do {
+            try await vault.syncNow()
+        } catch AmparoError.reenrollRequired {
+            failToHuman()
+        } catch {
+            // Transient or unexpected: keep the snapshot, stay quiet.
+        }
+    }
+}
