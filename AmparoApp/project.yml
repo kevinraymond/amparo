@@ -11,7 +11,7 @@ packages:
     path: ../AmparoKit
 settings:
   base:
-    DEVELOPMENT_TEAM: YZ3CLPWK4A
+    DEVELOPMENT_TEAM: 45PS9D6Z99
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
 targets:
@@ -38,7 +38,8 @@ targets:
     entitlements:
       path: Amparo/Amparo.entitlements
       properties:
+        # App-group keychain sharing: this entitlement alone covers both the
+        # shared container and kSecAttrAccessGroup = "group.onl.kev.amparo".
+        # (keychain-access-groups is only for $(AppIdentifierPrefix) groups.)
         com.apple.security.application-groups:
-          - group.onl.kev.amparo
-        keychain-access-groups:
           - group.onl.kev.amparo
