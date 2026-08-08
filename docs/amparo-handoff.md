@@ -314,6 +314,9 @@ Listing copy: "assisted access for the account holder, managed by a helper they 
 | D6 | 2026-08-08 | Dev container runtime = podman (+ docker-compose provider) | No Docker Desktop on build host; compose file stays runtime-agnostic |
 | D7 | 2026-08-08 | Fixture seeding = Node register-helper (§6 crypto, stdlib) for accounts/org/invite/confirm + official `bw` CLI for all ciphers | `bw` cannot register accounts or create orgs (web-vault-only flows); helper's derivations double as behavioral test vectors for P1; ciphers stay canonical (created by official tooling) |
 | D8 | 2026-08-08 | Dev stack adds Caddy TLS sidecar (internal CA) at `https://localhost:8443`; plain HTTP kept on 8222 for debugging | `bw` CLI 2025.x refuses plain-HTTP server URLs; also matches "real certs from day one" posture |
+| D9 | 2026-08-08 | AmparoKit: swift-tools 6.0, swift-testing for unit tests | Toolchain on hand is Swift 6.3/Xcode 26; exceeds handoff's 5.10/16 minimums |
+| D10 | 2026-08-08 | M1 vectors = committed `e2e-vectors.json`, generated behaviorally (`fixtures/gen-vectors.mjs`: raw EncStrings from live API, plaintexts from `bw`) | Unit tests run offline; regenerate after re-seed; dev-only key material, committing intended |
+| D11 | 2026-08-08 | EncString: types 5/6 parse but refuse decrypt; type 1 (AES-128) rejected as unknown | Outside §6.2 table / never emitted by target servers; no test data exists to validate a decrypt path |
 
 ## 13. Open questions
 - Assistive Access × third-party autofill: empirical answer needed (M4-T3).

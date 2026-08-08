@@ -45,6 +45,9 @@ Vaultwarden and document the observed behavior.
 
 - One milestone (§11) per session where possible. Run tests before ending a
   session. Update Decision Log + cleanroom log in the same commit.
+- Cross-session progress lives in `docs/STATUS.md` (milestone/task state +
+  session log). Read it at session start; update it in the same commit as the
+  work it records.
 - Licensing: everything in this repo is Apache-2.0. No GPL/AGPL code enters
   this repo, ever.
 - Dev stack runs under **podman** (`podman compose -f deploy/compose.dev.yaml
