@@ -31,7 +31,7 @@ The handoff doc defines the tasks; this file records their state. One session
 - [x] M3-T4 sync-on-foreground + flat-JSON snapshot store (D5) + icon cache w/ negative caching
 - [x] M3-T5 call-caregiver screen; all member error paths route there (purge keeps caregiver contact, D17)
 - Device build ✅ signed with paid team `45PS9D6Z99` + App Group profile; **Amparo 0.1.0 installed on kPhone** via devicectl. (Root cause of the earlier "No Account for Team": `YZ3CLPWK4A` was the stale *free* personal-team ID from an old cert — paid enrollment created team `45PS9D6Z99`. Also: app groups must not be listed under `keychain-access-groups` — the App Groups entitlement alone grants keychain sharing.)
-- **Pending on-device (Kevin, by hand):** run enrollment against the tailnet/dev server, then the audits — Face ID flows, biometry re-enroll invalidation, VoiceOver/Dynamic Type on hardware, clipboard expiry verify
+- **Pending on-device (Kevin, by hand):** enroll at **`https://amparo-dev.tailc12075.ts.net`** (member fixture creds in `fixtures/fixtures.env`), then the audits — Face ID flows, biometry re-enroll invalidation, VoiceOver/Dynamic Type on hardware, clipboard expiry verify
 
 ### M4 — Autofill (P3) — pending
 - [ ] M4-T1 extension + identity store · M4-T2 no-interaction path · M4-T3 device matrix incl. Assistive Access probe
@@ -49,6 +49,7 @@ The handoff doc defines the tasks; this file records their state. One session
 | 2026-08-08 | M2 complete | AmparoAPI protocol client: 26 new unit tests (captured-sample driven) + 7 integration tests, 59 total green; integration decrypts all 10 fixture ciphers via both key paths against live VW. New `fixtures/capture-samples.mjs` → committed raw API samples incl. real 2FA challenge (throwaway authenticator account, kept for re-runs). Observed + documented: no refresh-token rotation; wrong-password ≠ `invalid_grant`; `deletedDate` (§6.3/§6.4 corrected in place). Decisions D12–D15. |
 | 2026-08-08 | M3 code complete | AmparoShared (Keychain/store/VaultStore/icons) + TOTP in AmparoCrypto: 96 package tests green (offline enrollment test runs real crypto against captured samples, keys cross-checked vs e2e-vectors). SwiftUI app (enrollment, member grid/detail, call-caregiver, hidden caregiver settings) builds green for iPhone 17 Pro sim; `AmparoApp/project.yml` via xcodegen, bundle `onl.kev.amparo`. Device build blocked on Xcode account re-auth (see M3 action item). Decisions D5, D16–D18. |
 | 2026-08-08 | M3 device deploy | "No Account for Team" root-caused: stale free-team ID in project.yml, not an auth issue → `DEVELOPMENT_TEAM=45PS9D6Z99`; dropped app group from `keychain-access-groups` (App Groups entitlement suffices). Device build signed + provisioned; Amparo 0.1.0 installed on kPhone. On-device pass now in Kevin's hands. |
+| 2026-08-08 | Tailnet dev TLS live | Tailscale app on Mac (node renamed `amparo-dev`) + kPhone on tailnet; HTTPS certs enabled tailnet-wide; `tailscale serve --bg http://localhost:8222` → `https://amparo-dev.tailc12075.ts.net` (tailnet-only, real LE cert, ATS-clean). `/alive` + prelogin verified through the proxy. `deploy/dev-tls-notes.md` updated with the live setup; on-device enrollment unblocked. |
 
 ## Environment notes (dev host)
 

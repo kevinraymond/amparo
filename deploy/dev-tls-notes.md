@@ -10,25 +10,33 @@ fight ATS with exceptions — real certs from day one (handoff §5).
 
 Two options, in order of preference:
 
-## Option A — Tailscale HTTPS (preferred; matches production)
+## Option A — Tailscale HTTPS (preferred; matches production) — LIVE since 2026-08-08
 
 Matches the production deployment model (tailnet-only access).
 
-1. Install Tailscale on the dev Mac and the test iPhone; join both to the same
-   tailnet.
-2. Enable HTTPS certificates for the tailnet (Tailscale admin console →
-   DNS → HTTPS Certificates).
-3. `tailscale cert <mac-hostname>.<tailnet>.ts.net` to mint a cert, then
-   either:
-   - front Vaultwarden with Caddy holding that cert (this becomes the prod
-     compose shape in P5), or
-   - `tailscale serve https / http://localhost:8222` to proxy directly — the
-     zero-config choice for dev.
-4. Set `DOMAIN=https://<mac-hostname>.<tailnet>.ts.net` in the compose env and
-   point the app enrollment at that URL.
+**Current dev setup (working):**
 
-Neither Tailscale nor mkcert is installed on the build host yet; install when
-device testing starts (P2/P3).
+- Mac app installed via `brew install --cask tailscale-app`; CLI at
+  `/Applications/Tailscale.app/Contents/MacOS/Tailscale`. Node renamed
+  `amparo-dev` (`tailscale set --hostname amparo-dev`). iPhone (kPhone) on
+  the same tailnet. MagicDNS suffix: `tailc12075.ts.net`.
+- HTTPS certificates enabled tailnet-wide (admin console → DNS →
+  HTTPS Certificates). Without this, `tailscale serve` hangs on an
+  interactive enable prompt and `tailscale cert` returns
+  "account does not support getting TLS certs".
+- Proxy: `tailscale serve --bg http://localhost:8222` — serves
+  **`https://amparo-dev.tailc12075.ts.net`** (tailnet-only) with a real
+  Let's Encrypt cert, auto-renewed by tailscaled; config persists across
+  restarts. Disable with `tailscale serve --https=443 off`.
+- Verified: `/alive` 200 and prelogin through the proxy; cert chain is
+  publicly trusted, so iOS ATS accepts it with zero device configuration.
+
+**Enrollment URL for device testing: `https://amparo-dev.tailc12075.ts.net`**
+
+Caveat: compose still sets `DOMAIN=https://localhost:8443`. That base URL
+only leaks into web-vault links and invite emails (unused in dev); every
+mobile-API flow the app touches is DOMAIN-agnostic. The P5 prod compose sets
+DOMAIN to the tailnet URL properly.
 
 ## Option B — mkcert on the LAN
 
