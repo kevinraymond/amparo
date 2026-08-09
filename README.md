@@ -8,20 +8,61 @@ An open-source, free system that lets a tech-savvy adult child (the
 **caregiver**) remotely manage credentials for an elderly parent (the
 **member**), who gets a dead-simple, big-button, biometric-only iOS
 experience — one tap to fill a password, zero jargon, zero master-password
-prompts after enrollment.
+prompts after enrollment. Works inside iOS **Assistive Access**.
 
 Amparo (pt-BR: support, protection) is **not** a new password manager. The
 backend is stock [Vaultwarden](https://github.com/dani-garcia/vaultwarden),
-self-hosted by the caregiver (the reference, Tailscale-first deployment), or
-a cloud Bitwarden account for caregivers who won't self-host (spec §2.1;
-client support lands in M4.5). The caregiver manages everything with official
-Bitwarden clients. This repo builds only the **member-side iOS client** —
-clean-room, Apache-2.0.
+self-hosted by the caregiver (the reference, Tailscale-first deployment) —
+cloud Bitwarden support for caregivers who won't self-host is landing next
+(spec §2.1, M4.5). The caregiver manages everything with official Bitwarden
+clients. This repo builds only the **member-side iOS client** — clean-room,
+Apache-2.0.
+
+<!-- TODO: screenshots — home grid, detail screen, QuickType fill, call-caregiver screen -->
+
+## Why this exists
+
+If your parent can handle a stock password manager with biometrics, use one —
+the family-vault features in Bitwarden, 1Password, and Apple Passwords are
+genuinely good, and Amparo is not for you.
+
+Where stock apps break down is the last inch of UX for a cognitively
+impaired or deeply non-technical user: autofill that works most of the time
+(and the rest is a support call), app updates that quietly rearrange the UI,
+vault-timeout reprompts for a master password they never knew, and error
+dialogs that dead-end someone who can't troubleshoot. Those aren't storage or
+sync problems — they're interaction-surface problems, and they can't be fixed
+from inside a general-purpose client.
+
+Amparo replaces only that layer. The member surface is deliberately frozen
+and minimal: Face ID is the only unlock, autofill is the primary path, the
+in-app fallback is a big-tile grid, and every error state collapses to one
+screen — "call your caregiver," with a giant call button. No settings, no
+onboarding, no password-manager vocabulary anywhere.
+
+Self-hosting also answers a trust objection common in this generation ("the
+password company will see my passwords"): no company holds anything. The
+vault lives on hardware the family controls, and the crypto is Bitwarden's
+zero-knowledge model unchanged.
+
+## Is amparo right for your family?
+
+**Good fit:** a parent who can tap a Face ID prompt but is defeated by
+anything more; a caregiver comfortable running a Docker container and a
+tailnet (or, post-M4.5, a cloud Bitwarden account); iPhone on the member
+side.
+
+**Not the tool:** parents who manage a stock app fine today (use the stock
+app); families needing Android on the member side (deferred); anyone wanting
+a hosted service — Amparo is software, not a service, and the authors run
+nothing and hold nothing. Use of Amparo requires the member's informed,
+ongoing consent; see [DISCLAIMER.md](DISCLAIMER.md).
 
 ## How it works
 
-- The caregiver hosts Vaultwarden (or uses cloud Bitwarden) and manages
-  credentials in an org collection shared read-only to the member's account.
+- The caregiver hosts Vaultwarden (or, post-M4.5, uses cloud Bitwarden) and
+  manages credentials in an org collection shared read-only to the member's
+  account.
 - The member's account is owned by the member (the parent). The caregiver is
   instance admin, org owner, and emergency-access grantee — that is both the
   architecture and the legal posture (see [DISCLAIMER.md](DISCLAIMER.md)).
@@ -36,11 +77,26 @@ clean-room, Apache-2.0.
 Full specification, phase plan, and decision log:
 **[docs/amparo-handoff.md](docs/amparo-handoff.md)**.
 
+## Security model (summary)
+
+- Zero-knowledge, unchanged from Bitwarden's documented model: the master
+  password never leaves the device; keys are derived locally (PBKDF2-SHA256,
+  600k) and used to decrypt the account's symmetric key.
+- Decryption keys live in the iOS Keychain protected by
+  `SecAccessControl(.biometryCurrentSet)` — every read is a Face ID prompt,
+  and re-enrolling Face ID invalidates them (caregiver re-enrolls).
+- Ciphers are cached **as received, still encrypted**; fields decrypt on
+  demand. Clipboard copies expire; revealed passwords auto-hide.
+- Clean-room implementation from public documentation and observed protocol
+  behavior only — see [CLEANROOM.md](CLEANROOM.md) and
+  `docs/cleanroom-log.md`.
+
 ## Status (2026-08)
 
 Working end-to-end on a real device: enrollment → sync → member UI →
 AutoFill in Safari and third-party apps — **including inside Assistive
-Access** (D21).
+Access** (D21). Apple does not document third-party credential providers as
+supported in Assistive Access; amparo is verified working there on-device.
 
 | Milestone | State |
 |---|---|
@@ -51,6 +107,15 @@ Access** (D21).
 | Android client | deferred (no test device) |
 
 Session-by-session detail: [docs/STATUS.md](docs/STATUS.md).
+
+## Installing
+
+There is no App Store or TestFlight build yet (that's M5). Until then, the
+caregiver builds from source: a Mac with Xcode, a paid Apple Developer
+membership (required for the AutoFill entitlement on-device), and the steps
+under [iOS app](#ios-app) below. This is a real constraint, on purpose — the
+project would rather ship to early adopters who can build it than run a
+service.
 
 ## Repository layout
 
