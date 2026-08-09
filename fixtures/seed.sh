@@ -82,9 +82,9 @@ ensure_login "6. Streaming"       "https://streaming.example.com"   "pat@mail.ex
 ensure_login "7. Phone"           "https://phone.example.com"       "pat"              "pass-phone-1653"     "-" "$ORG_ID" "$COLLECTION_ID"
 ensure_login "8. Electric"        "https://electric.example.com"    "pat.smith"        "pass-electric-4817"      "-" "$ORG_ID" "$COLLECTION_ID"
 ensure_login "9. Retirement"      "https://retirement.example.com"  "pat.smith"        "pass-retire-6039"     "JBSWY3DPEHPK3PXP" "$ORG_ID" "$COLLECTION_ID"
-# Real, reachable domain with a real login form: exercises the QuickType
-# suggestion path on device (M4-T3) — every *.example.com domain is fake.
-ensure_login "10. Wikipedia"      "https://en.wikipedia.org"        "amparo-test"      "pass-wiki-2593"     "-" "$ORG_ID" "$COLLECTION_ID"
+# Real login host (Wikipedia sign-in is central SSO on auth.wikimedia.org —
+# NOT en.wikipedia.org): exercises the QuickType path; *.example.com is fake.
+ensure_login "10. Wikipedia"      "https://auth.wikimedia.org"        "amparo-test"      "pass-wiki-2593"     "-" "$ORG_ID" "$COLLECTION_ID"
 
 echo "== member: personal cipher (user-key path) =="
 bw_relogin "$MEMBER_EMAIL" "$MEMBER_PASSWORD"

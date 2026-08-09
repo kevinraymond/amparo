@@ -10,7 +10,7 @@ README.md where the TODO comment sits.
 |---|---|
 | `home-grid.png` | Member home: 11 big tiles, Bank first |
 | `detail-totp.png` | Retirement detail: giant copy button + 64pt TOTP ring |
-| `quicktype-fill.png` | Safari on the Wikipedia login with the AutoFill bar / Amparo picker visible |
+| `quicktype-fill.png` | Safari on the Wikipedia sign-in (lands on auth.wikimedia.org) with the inline `amparo-test` QuickType chip or mid-fill |
 | `call-caregiver.png` | The "Something needs attention" screen (stage: hidden door → Reset enrollment, screenshot before re-enrolling) |
 
 Suggested README block once files exist:

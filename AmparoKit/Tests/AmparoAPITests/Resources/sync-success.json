@@ -629,10 +629,10 @@
       },
       {
         "object": "cipherDetails",
-        "id": "fc64f203-6e10-44cc-ae7a-39158fe6704f",
+        "id": "fa6a9e6b-5f2d-413b-bd75-8a01b73f94d6",
         "type": 1,
-        "creationDate": "2026-08-09T00:57:09.506899Z",
-        "revisionDate": "2026-08-09T00:57:09.509617Z",
+        "creationDate": "2026-08-09T01:24:55.737878Z",
+        "revisionDate": "2026-08-09T01:24:55.740800Z",
         "deletedDate": null,
         "reprompt": 0,
         "organizationId": "7390468a-7c11-452d-842b-7722a3eb72bf",
@@ -642,7 +642,7 @@
         "collectionIds": [
           "25d3f7fe-0e60-4893-a1fc-19c8691ef815"
         ],
-        "name": "2.ACAWkQzasHtAhMXvpF948w==|QwzLQKZ5i1b/x1zN0/tKYw==|amlS82ldyh495fNPUVOQtNcRasFLI6VE2+M/D59+63A=",
+        "name": "2.I/+8O2RY7xUVS5REImidGg==|YDRIFLX0gHT32Yv48Rk9hg==|0O6Lzm6R2YarORqUJqKZk8db8odSdnVj8ifXbvzASBY=",
         "notes": null,
         "fields": [],
         "passwordHistory": [],
@@ -650,15 +650,15 @@
           "totp": null,
           "uris": [
             {
-              "uriChecksum": "2.zuJVA4ozKdQKE3mm4p88/Q==|O7RjWW66xv/TNR/KTi3JcJOq0YnBe0Jl+SwsuGuLH/fJtKE8zybNeGz6gIpKVlCq|l3zj0umAMMNxyroXVVt74anCqAfl4kWZld8DRBc0ato=",
+              "uriChecksum": "2.WCYOldHY9fdUFLg2yz0/eg==|Ur1wyRs6lRMkKQg0bFl7xM0q4QaSB3jW/83Nruv/1SMrbIBvAFwJ4JjnZsv4ZPqM|OKFTe+S9X33BMXK6mVmn/uWga1i3ZLBTusxc1HRW0hk=",
               "match": null,
-              "uri": "2.mwXjfkkC2lsGECSm5DDyOw==|WGeayD5jTr00RKHq4iWo9dnADEx9SXQTC8Xmqo9XkfE=|/nKIOWeh8//zsQLES1YsoBfFW57XuZZ6RaymIiBAbuA="
+              "uri": "2.oKndsYqGHKbI5Xorxd3HNw==|yvevevEXMMdjYrZWYPhadjcDjfy54Tzo4Z/Nf8Uqbqg=|wGrF+6DqRN7bfSk5zjwCNu9ZB7K6s3Gt3xhquFSV+qw="
             }
           ],
-          "username": "2.eIjKl6riuebqHWo+m52xQQ==|ZgIxhuex+91YJemsaN2pRg==|g7u0gE8xTNwuk31d1um1lEcs/+g2QyLd1YU/k5ko+mU=",
-          "password": "2.Mqy48/q5tnHm7H2Oy0solQ==|d+rxiiE36yRBdk9iyvngdA==|o2yP2DIQbB4HtAd4fA7CWn/Q1migPM1FfuDF/+q82Vw=",
+          "username": "2.DzKNP2ZHhkG8C6o38CmuhQ==|r2Yp8Fs8w5HL22PlNNB8RQ==|BT0+ukApmVWRnLJgfKu7eb3Kmz4Mw4I/OnmcxQBhZwo=",
+          "password": "2.vD+0yS1DQKWaQ3UTU0SeAg==|y22QOTb5sxd0kLXPyGwALw==|+NDzNtjfdHpROsGlqBLO8U/1rEo3upRVk1ztQaAg6sM=",
           "passwordRevisionDate": null,
-          "uri": "2.mwXjfkkC2lsGECSm5DDyOw==|WGeayD5jTr00RKHq4iWo9dnADEx9SXQTC8Xmqo9XkfE=|/nKIOWeh8//zsQLES1YsoBfFW57XuZZ6RaymIiBAbuA="
+          "uri": "2.oKndsYqGHKbI5Xorxd3HNw==|yvevevEXMMdjYrZWYPhadjcDjfy54Tzo4Z/Nf8Uqbqg=|wGrF+6DqRN7bfSk5zjwCNu9ZB7K6s3Gt3xhquFSV+qw="
         },
         "secureNote": null,
         "card": null,
