@@ -46,11 +46,11 @@ struct CipherStoreTests {
 @Suite("Cipher presentation")
 struct CipherPresentationTests {
     @Test(arguments: [
-        ("1. Banco", 1, "Banco"),
-        ("12. Cartao", 12, "Cartao"),
+        ("1. Bank", 1, "Bank"),
+        ("12. Card", 12, "Card"),
         ("3.NoSpace", 3, "NoSpace"),
-        ("9. Previdencia", 9, "Previdencia"),
-        ("Portal Medico", Int.max, "Portal Medico"),
+        ("9. Retirement", 9, "Retirement"),
+        ("Medical Portal", Int.max, "Medical Portal"),
         ("2026 Taxes", Int.max, "2026 Taxes"),  // number without dot = no prefix
     ])
     func splitsOrderingPrefix(raw: String, index: Int, display: String) {
@@ -60,8 +60,8 @@ struct CipherPresentationTests {
     }
 
     @Test(arguments: [
-        ("https://banco.example.com/login", "banco.example.com"),
-        ("banco.example.com", "banco.example.com"),
+        ("https://bank.example.com/login", "bank.example.com"),
+        ("bank.example.com", "bank.example.com"),
         ("", nil),
     ])
     func extractsDomains(uri: String, expected: String?) {
@@ -107,8 +107,8 @@ struct IconCacheTests {
             counter.increment()
             return Data([1, 2, 3])
         }
-        #expect(await cache.icon(for: "banco.example.com", fetch: fetch) == Data([1, 2, 3]))
-        #expect(await cache.icon(for: "banco.example.com", fetch: fetch) == Data([1, 2, 3]))
+        #expect(await cache.icon(for: "bank.example.com", fetch: fetch) == Data([1, 2, 3]))
+        #expect(await cache.icon(for: "bank.example.com", fetch: fetch) == Data([1, 2, 3]))
         #expect(counter.count == 1)
     }
 
@@ -137,7 +137,7 @@ struct IconCacheTests {
     }
 
     @Test func sanitizesDomainsIntoFileNames() {
-        #expect(IconCache.fileName(for: "Banco.Example.com") == "banco.example.com.icon")
+        #expect(IconCache.fileName(for: "Bank.Example.com") == "bank.example.com.icon")
         #expect(IconCache.fileName(for: "weird/../host") == "weird_.._host.icon")
     }
 }

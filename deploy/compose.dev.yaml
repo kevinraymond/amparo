@@ -16,6 +16,11 @@ services:
       - ADMIN_TOKEN=${ADMIN_TOKEN}
       - SIGNUPS_ALLOWED=true          # dev only; prod runbook sets false
       - DOMAIN=https://localhost:8443
+      # Dev only: seeding + the integration suite make bursts of login
+      # attempts; the default limiter (burst 10, ~1/min refill) trips after
+      # one seed + a couple of test runs. Prod keeps Vaultwarden defaults.
+      - LOGIN_RATELIMIT_SECONDS=1
+      - LOGIN_RATELIMIT_MAX_BURST=100
     ports: ["8222:80"]
     volumes: ["./vw-data:/data"]
 

@@ -9,11 +9,11 @@ struct IconTests {
         let transport = StubTransport([.response(status: 200, body: png)])
         let client = VaultwardenClient.test(transport: transport)
 
-        let icon = try await client.fetchIcon(domain: "banco.example.com")
+        let icon = try await client.fetchIcon(domain: "bank.example.com")
 
         #expect(icon == png)
         let request = try #require(await transport.requests.first)
-        #expect(request.url == "https://vw.test:8443/icons/banco.example.com/icon.png")
+        #expect(request.url == "https://vw.test:8443/icons/bank.example.com/icon.png")
         #expect(request.headers["Authorization"] == nil)
     }
 

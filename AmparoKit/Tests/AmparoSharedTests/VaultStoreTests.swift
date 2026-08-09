@@ -61,11 +61,11 @@ struct VaultStoreTests {
 
         let tiles = try await test.vault.tiles()
         #expect(tiles.count == 11)
-        // D4 prefix convention: "1. Banco" → "Banco", ordered by index;
+        // D4 prefix convention: "1. Bank" → "Bank", ordered by index;
         // the unprefixed personal cipher sorts last.
-        #expect(tiles.first?.displayName == "Banco")
-        #expect(tiles.map(\.displayName).contains("1. Banco") == false)
-        #expect(tiles.last?.displayName == "Portal Medico")
+        #expect(tiles.first?.displayName == "Bank")
+        #expect(tiles.map(\.displayName).contains("1. Bank") == false)
+        #expect(tiles.last?.displayName == "Medical Portal")
         #expect(tiles.last?.sortIndex == Int.max)
         #expect(tiles.allSatisfy { $0.username?.isEmpty == false })
         #expect(tiles.allSatisfy { $0.domain?.isEmpty == false })
@@ -76,16 +76,16 @@ struct VaultStoreTests {
         try await test.vault.enroll(TestVault.enrollmentRequest())
         let tiles = try await test.vault.tiles()
 
-        let previdencia = try #require(tiles.first { $0.displayName == "Previdencia" })
-        let secrets = try #require(try await test.vault.secrets(forCipher: previdencia.id))
+        let retirement = try #require(tiles.first { $0.displayName == "Retirement" })
+        let secrets = try #require(try await test.vault.secrets(forCipher: retirement.id))
         #expect(secrets.password?.isEmpty == false)
         let totp = try #require(secrets.totp)
         #expect(totp.code(at: Date(timeIntervalSince1970: 59)) == "996554")  // fixture secret
 
-        let banco = try #require(tiles.first { $0.displayName == "Banco" })
-        let bancoSecrets = try #require(try await test.vault.secrets(forCipher: banco.id))
-        #expect(bancoSecrets.totp == nil)
-        #expect(bancoSecrets.password?.isEmpty == false)
+        let bank = try #require(tiles.first { $0.displayName == "Bank" })
+        let bankSecrets = try #require(try await test.vault.secrets(forCipher: bank.id))
+        #expect(bankSecrets.totp == nil)
+        #expect(bankSecrets.password?.isEmpty == false)
     }
 
     @Test func biometryInvalidationIsDetectedAfterLock() async throws {

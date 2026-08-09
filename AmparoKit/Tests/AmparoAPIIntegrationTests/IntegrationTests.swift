@@ -15,9 +15,9 @@ import Testing
 struct IntegrationTests {
     /// Fixture vault content (fixtures/seed.sh).
     private static let allCipherNames = [
-        "1. Banco", "2. Email", "3. Plano de Saude", "4. Farmacia", "5. Mercado",
-        "6. Streaming", "7. Telefone", "8. Luz", "9. Previdencia", "10. Wikipedia",
-        "Portal Medico",
+        "1. Bank", "2. Email", "3. Health Plan", "4. Pharmacy", "5. Groceries",
+        "6. Streaming", "7. Phone", "8. Electric", "9. Retirement", "10. Wikipedia",
+        "Medical Portal",
     ]
 
     private func makeClient(
@@ -117,7 +117,7 @@ struct IntegrationTests {
         #expect(totpCount == 1)
         let personal = sync.loginCiphers.filter { $0.organizationId == nil }
         #expect(personal.count == 1)
-        #expect(try personal.first?.name?.decryptString(with: keys.userKey) == "Portal Medico")
+        #expect(try personal.first?.name?.decryptString(with: keys.userKey) == "Medical Portal")
     }
 
     /// The agreed revoked-token strategy (D15): the server's definitive

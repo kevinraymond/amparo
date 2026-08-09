@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # amparo dev fixtures — idempotent seed of the local Vaultwarden.
 #
-# 1. register-helper.mjs (node): accounts, org "Family", collection "Contas",
+# 1. register-helper.mjs (node): accounts, org "Family", collection "Accounts",
 #    member read-only membership. Writes fixtures.env.
 # 2. Official `bw` CLI: 9 org login ciphers (one with TOTP) as the caregiver,
 #    1 personal login cipher as the member — vault content is produced by
@@ -73,23 +73,23 @@ refresh_items() { # writes current vault items to ITEMS_JSON
 echo "== caregiver: org ciphers =="
 bw_relogin "$CAREGIVER_EMAIL" "$CAREGIVER_PASSWORD"
 refresh_items
-ensure_login "1. Banco"           "https://banco.example.com"       "maria"            "senha-banco-9481"    "-" "$ORG_ID" "$COLLECTION_ID"
-ensure_login "2. Email"           "https://mail.example.com"        "maria@mail.example.com" "senha-email-2764" "-" "$ORG_ID" "$COLLECTION_ID"
-ensure_login "3. Plano de Saude"  "https://saude.example.com"       "maria.silva"      "senha-saude-5130"    "-" "$ORG_ID" "$COLLECTION_ID"
-ensure_login "4. Farmacia"        "https://farmacia.example.com"    "maria"            "senha-farmacia-8672" "-" "$ORG_ID" "$COLLECTION_ID"
-ensure_login "5. Mercado"         "https://mercado.example.com"     "maria"            "senha-mercado-3945"  "-" "$ORG_ID" "$COLLECTION_ID"
-ensure_login "6. Streaming"       "https://streaming.example.com"   "maria@mail.example.com" "senha-stream-7208" "-" "$ORG_ID" "$COLLECTION_ID"
-ensure_login "7. Telefone"        "https://telefone.example.com"    "maria"            "senha-fone-1653"     "-" "$ORG_ID" "$COLLECTION_ID"
-ensure_login "8. Luz"             "https://luz.example.com"         "maria.silva"      "senha-luz-4817"      "-" "$ORG_ID" "$COLLECTION_ID"
-ensure_login "9. Previdencia"     "https://previdencia.example.com" "maria.silva"      "senha-prev-6039"     "JBSWY3DPEHPK3PXP" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "1. Bank"            "https://bank.example.com"        "pat"              "pass-bank-9481"    "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "2. Email"           "https://mail.example.com"        "pat@mail.example.com" "pass-email-2764" "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "3. Health Plan"     "https://health.example.com"      "pat.smith"        "pass-health-5130"    "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "4. Pharmacy"        "https://pharmacy.example.com"    "pat"              "pass-pharmacy-8672" "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "5. Groceries"       "https://groceries.example.com"   "pat"              "pass-grocery-3945"  "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "6. Streaming"       "https://streaming.example.com"   "pat@mail.example.com" "pass-stream-7208" "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "7. Phone"           "https://phone.example.com"       "pat"              "pass-phone-1653"     "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "8. Electric"        "https://electric.example.com"    "pat.smith"        "pass-electric-4817"      "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "9. Retirement"      "https://retirement.example.com"  "pat.smith"        "pass-retire-6039"     "JBSWY3DPEHPK3PXP" "$ORG_ID" "$COLLECTION_ID"
 # Real, reachable domain with a real login form: exercises the QuickType
 # suggestion path on device (M4-T3) — every *.example.com domain is fake.
-ensure_login "10. Wikipedia"      "https://en.wikipedia.org"        "amparo-test"      "senha-wiki-2593"     "-" "$ORG_ID" "$COLLECTION_ID"
+ensure_login "10. Wikipedia"      "https://en.wikipedia.org"        "amparo-test"      "pass-wiki-2593"     "-" "$ORG_ID" "$COLLECTION_ID"
 
 echo "== member: personal cipher (user-key path) =="
 bw_relogin "$MEMBER_EMAIL" "$MEMBER_PASSWORD"
 refresh_items
-ensure_login "Portal Medico"      "https://medico.example.com"      "maria.silva"      "senha-medico-7521"   "-" "-" "-"
+ensure_login "Medical Portal"     "https://medical.example.com"     "pat.smith"        "pass-medical-7521"   "-" "-" "-"
 
 refresh_items
 total=$(json 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(0,"utf8")).length))' < "$ITEMS_JSON")

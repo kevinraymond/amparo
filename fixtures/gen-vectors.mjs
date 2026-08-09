@@ -23,7 +23,7 @@ const VW_URL = process.env.VW_URL ?? 'http://localhost:8222';
 const VW_HTTPS_URL = process.env.AMPARO_VW_HTTPS_URL ?? 'https://localhost:8443';
 const EMAIL = (process.env.MEMBER_EMAIL ?? 'member@amparo.test').toLowerCase();
 const PASSWORD = process.env.MEMBER_PASSWORD ?? 'Fixture-Member-2026-Hx7q';
-const VECTOR_CIPHERS = ['1. Banco', '9. Previdencia', 'Portal Medico'];
+const VECTOR_CIPHERS = ['1. Bank', '9. Retirement', 'Medical Portal'];
 const OUT = path.resolve('../AmparoKit/Tests/AmparoCryptoTests/Resources/e2e-vectors.json');
 
 const field = (obj, name) => obj?.[name] ?? obj?.[name[0].toUpperCase() + name.slice(1)];

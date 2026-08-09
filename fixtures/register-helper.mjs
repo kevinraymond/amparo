@@ -36,7 +36,7 @@ const MEMBER = {
   name: process.env.MEMBER_NAME ?? 'Dev Member',
 };
 const ORG_NAME = 'Family';
-const COLLECTION_NAME = 'Contas';
+const COLLECTION_NAME = 'Accounts';
 
 // ------------------------------------------------------------------- HTTP
 

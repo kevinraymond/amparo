@@ -6,27 +6,27 @@ import Testing
 @Suite("Autofill matcher")
 struct AutofillMatcherTests {
     @Test(arguments: [
-        ("banco.example.com", "banco.example.com", true),
-        ("https://banco.example.com/login", "banco.example.com", true),
-        ("www.banco.example.com", "banco.example.com", true),          // sub → stored
-        ("banco.example.com", "www.banco.example.com", true),          // stored → sub
-        ("HTTPS://BANCO.EXAMPLE.COM", "banco.example.com", true),
-        ("luz.example.com", "banco.example.com", false),
-        ("notbanco.example.com", "banco.example.com", false),          // no partial-label match
-        ("banco.example.com", "", false),
+        ("bank.example.com", "bank.example.com", true),
+        ("https://bank.example.com/login", "bank.example.com", true),
+        ("www.bank.example.com", "bank.example.com", true),          // sub → stored
+        ("bank.example.com", "www.bank.example.com", true),          // stored → sub
+        ("HTTPS://BANK.EXAMPLE.COM", "bank.example.com", true),
+        ("electric.example.com", "bank.example.com", false),
+        ("notbank.example.com", "bank.example.com", false),          // no partial-label match
+        ("bank.example.com", "", false),
     ])
     func matching(identifier: String, domain: String, expected: Bool) {
         #expect(AutofillMatcher.matches(serviceIdentifier: identifier, domain: domain) == expected)
     }
 
     @Test func nilDomainNeverMatches() {
-        #expect(!AutofillMatcher.matches(serviceIdentifier: "banco.example.com", domain: nil))
+        #expect(!AutofillMatcher.matches(serviceIdentifier: "bank.example.com", domain: nil))
     }
 
     @Test(arguments: [
-        ("https://banco.example.com/login?x=1", "banco.example.com"),
-        ("banco.example.com", "banco.example.com"),
-        ("  Banco.Example.Com  ", "banco.example.com"),
+        ("https://bank.example.com/login?x=1", "bank.example.com"),
+        ("bank.example.com", "bank.example.com"),
+        ("  Bank.Example.Com  ", "bank.example.com"),
     ])
     func hostExtraction(identifier: String, expected: String?) {
         #expect(AutofillMatcher.host(from: identifier) == expected)
@@ -41,19 +41,19 @@ struct AutofillMatcherTests {
 struct IdentityMappingTests {
     @Test func mapsOnlyTilesWithDomainAndUsername() {
         let tiles = [
-            MemberTile(id: "c1", displayName: "Banco", sortIndex: 1,
-                       domain: "banco.example.com", username: "vovo@example.com"),
-            MemberTile(id: "c2", displayName: "SemDominio", sortIndex: 2,
+            MemberTile(id: "c1", displayName: "Bank", sortIndex: 1,
+                       domain: "bank.example.com", username: "grandma@example.com"),
+            MemberTile(id: "c2", displayName: "NoDomain", sortIndex: 2,
                        domain: nil, username: "user"),
-            MemberTile(id: "c3", displayName: "SemUsuario", sortIndex: 3,
-                       domain: "luz.example.com", username: nil),
+            MemberTile(id: "c3", displayName: "NoUser", sortIndex: 3,
+                       domain: "electric.example.com", username: nil),
         ]
         let identities = CredentialIdentityRegistrar.identities(from: tiles)
         #expect(identities.count == 1)
         let identity = identities[0]
-        #expect(identity.serviceIdentifier.identifier == "banco.example.com")
+        #expect(identity.serviceIdentifier.identifier == "bank.example.com")
         #expect(identity.serviceIdentifier.type == .domain)
-        #expect(identity.user == "vovo@example.com")
+        #expect(identity.user == "grandma@example.com")
         #expect(identity.recordIdentifier == "c1")
     }
 }
