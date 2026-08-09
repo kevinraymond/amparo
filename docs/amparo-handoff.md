@@ -298,7 +298,7 @@ Listing copy: "assisted access for the account holder, managed by a helper they 
 - M4-T2 Without-user-interaction path; interaction-required fallback UI.
 - M4-T3 Device test matrix incl. Assistive Access probe (log result).
 
-**M5 — Pilot/hardening:** TestFlight, clipboard expiry verify, memory hygiene pass, colorblind-friendly theme options (§7.4 color-vision rule; caregiver-selectable palettes), WebSocket push (optional), Argon2id (optional).
+**M5 — Pilot/hardening:** TestFlight, clipboard expiry verify, memory hygiene pass, colorblind-friendly theme options (§7.4 color-vision rule; caregiver-selectable palettes), one-time-code autofill (`ProvidesOneTimeCodes` + `ASOneTimeCodeCredentialIdentity`, needs iOS 18 floor — deferred from M4 by Kevin 2026-08-08; passkeys stay out per §8), WebSocket push (optional), Argon2id (optional).
 
 **M6 (P5) — Deployment kit:** prod compose (VW+Caddy) + Tailscale variant, enrollment runbook (encodes §2 account model + member-account 2FA/new-device settings), restic backup unit, upgrade notes.
 

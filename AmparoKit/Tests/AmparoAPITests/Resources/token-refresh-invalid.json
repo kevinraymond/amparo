@@ -1,5 +1,5 @@
 {
-  "captured": "2026-08-08",
+  "captured": "2026-08-09",
   "request": "POST /identity/connect/token (refresh grant, garbage token)",
   "status": 400,
   "body": {

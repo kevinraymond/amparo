@@ -1,5 +1,5 @@
 {
-  "captured": "2026-08-08",
+  "captured": "2026-08-09",
   "request": "GET /api/sync?excludeDomains=true (member)",
   "status": 200,
   "body": {
@@ -211,6 +211,56 @@
           "password": "2.jJB/VtrCfp6ZlGrJhZzKhQ==|qIyE/TA8zZU9Nxhzu70s3A==|Ga2R7kwnHskEjTuoBBW4XcYsl2EiVq71h0ax7exFIUE=",
           "passwordRevisionDate": null,
           "uri": "2.QA2GTIeiz1sJzS8Q47wQLg==|GQmAzVqCdFnuePSTSrADA2jz+tHijVSDp6Uj496d2dU=|ZTYRP+ITUgMXqkVOcJNrmLcynx9vnfnjaeZwY58yQxg="
+        },
+        "secureNote": null,
+        "card": null,
+        "identity": null,
+        "sshKey": null,
+        "bankAccount": null,
+        "driversLicense": null,
+        "passport": null,
+        "folderId": null,
+        "favorite": false,
+        "archivedDate": null,
+        "edit": false,
+        "viewPassword": true,
+        "permissions": {
+          "delete": false,
+          "restore": false
+        }
+      },
+      {
+        "object": "cipherDetails",
+        "id": "37528b76-7464-4388-a2c8-363148ff0784",
+        "type": 1,
+        "creationDate": "2026-08-09T00:09:11.402658Z",
+        "revisionDate": "2026-08-09T00:09:11.404983Z",
+        "deletedDate": null,
+        "reprompt": 0,
+        "organizationId": "f5ca45f9-6c9a-4ca8-bdac-22ef0c57340b",
+        "key": null,
+        "attachments": null,
+        "organizationUseTotp": true,
+        "collectionIds": [
+          "d0701145-536c-4141-b85f-a9eb5621e824"
+        ],
+        "name": "2.KgKs/4EfRvITBCWWZjQnMA==|QJFQbZcDDjF1C0VbImh5+Q==|Oh3QCB83JfmfeFS7k9Kx13t+0S/7r7ukXUjzD4QAFRA=",
+        "notes": null,
+        "fields": [],
+        "passwordHistory": [],
+        "login": {
+          "totp": null,
+          "uris": [
+            {
+              "uriChecksum": "2.FI1eRM+dz+dlFwPyKWC2vA==|uihkRV/khKuFiY7aCWcYbG9cF2lZsHDxp3snkwTh3KSyGF5zp0d/mIEHiXuQW1X8|rZ7VJxeLPiD041Wi0idTFgfx0yWL++Rep/geXMl2tiM=",
+              "match": null,
+              "uri": "2.ildS2uuzJk/hhB/I2OYN3w==|qcRSyibmXhZINV5Q72UaBtHOBL0yjBoHnh6x+3GNkwU=|NyjmDsQ3poz2CW26rVB4sFnN12IrJ1YeAH0/kU4dwvA="
+            }
+          ],
+          "username": "2.Az6/gJ+nXd9b+gh1vRzD3w==|AFPUHlfCEn0nDfp5GXP34w==|E+5UKl07XNO1rvdZQmZuro06MIf3Un8xak85GQjUOKU=",
+          "password": "2.EVRoa26ejpoW7Imp9WXgqQ==|tczFZI//FnjFyfGu6YAkXA==|AysvL6uqCY8t/PvYY8rVfEtOXRJu21/meHcnSkglfUo=",
+          "passwordRevisionDate": null,
+          "uri": "2.ildS2uuzJk/hhB/I2OYN3w==|qcRSyibmXhZINV5Q72UaBtHOBL0yjBoHnh6x+3GNkwU=|NyjmDsQ3poz2CW26rVB4sFnN12IrJ1YeAH0/kU4dwvA="
         },
         "secureNote": null,
         "card": null,

@@ -33,7 +33,7 @@ struct VaultStoreTests {
         }
         #expect(await test.vault.isEnrolled())
         let snapshot = try #require(try test.cipherStore.load())
-        #expect(snapshot.ciphers.count == 10)
+        #expect(snapshot.ciphers.count == 11)
         #expect(snapshot.organizationKeyStrings[orgId] != nil)
     }
 
@@ -60,7 +60,7 @@ struct VaultStoreTests {
         try await test.vault.enroll(TestVault.enrollmentRequest())
 
         let tiles = try await test.vault.tiles()
-        #expect(tiles.count == 10)
+        #expect(tiles.count == 11)
         // D4 prefix convention: "1. Banco" → "Banco", ordered by index;
         // the unprefixed personal cipher sorts last.
         #expect(tiles.first?.displayName == "Banco")
@@ -127,7 +127,7 @@ struct VaultStoreTests {
             keychain: test.keychain, cipherStore: test.cipherStore, transport: restartTransport
         )
         let snapshot = try await restarted.syncNow()
-        #expect(snapshot.ciphers.count == 10)
+        #expect(snapshot.ciphers.count == 11)
         // No access token survives a restart: refresh first, then sync.
         let urls = await restartTransport.requestURLs
         #expect(urls == [
@@ -189,7 +189,7 @@ struct VaultStoreTests {
             try await restarted.syncNow()
         }
         // Snapshot and enrollment survive — the member keeps working.
-        #expect(try test.cipherStore.load()?.ciphers.count == 10)
+        #expect(try test.cipherStore.load()?.ciphers.count == 11)
         #expect(await restarted.isEnrolled())
     }
 

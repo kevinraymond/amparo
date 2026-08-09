@@ -54,7 +54,7 @@ change on re-seed) — always regenerate both together.
 | Accounts | `caregiver@amparo.test`, `member@amparo.test` — PBKDF2-SHA256, 600k iterations |
 | Org | `Family`, owned by caregiver |
 | Collection | `Contas`, member has read-only + can view passwords |
-| Org ciphers | `1. Banco` … `8. Luz` (login: uri/username/password), `9. Previdencia` (+ TOTP) — created by caregiver, decrypt via the **org-key path** |
+| Org ciphers | `1. Banco` … `8. Luz` (login: uri/username/password), `9. Previdencia` (+ TOTP), `10. Wikipedia` (real domain — exercises the QuickType autofill path on device; every `*.example.com` is fake) — created by caregiver, decrypt via the **org-key path** |
 | Personal cipher | `Portal Medico` in the member's own vault — decrypts via the **user-key path** |
 
 Cipher names use the ordering-prefix convention from handoff §7.4 / D4.

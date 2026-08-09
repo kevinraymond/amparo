@@ -16,7 +16,8 @@ struct IntegrationTests {
     /// Fixture vault content (fixtures/seed.sh).
     private static let allCipherNames = [
         "1. Banco", "2. Email", "3. Plano de Saude", "4. Farmacia", "5. Mercado",
-        "6. Streaming", "7. Telefone", "8. Luz", "9. Previdencia", "Portal Medico",
+        "6. Streaming", "7. Telefone", "8. Luz", "9. Previdencia", "10. Wikipedia",
+        "Portal Medico",
     ]
 
     private func makeClient(

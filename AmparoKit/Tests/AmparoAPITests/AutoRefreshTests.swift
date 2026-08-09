@@ -23,7 +23,7 @@ struct AutoRefreshTests {
 
         let response = try await client.sync()
 
-        #expect(response.ciphers.count == 10)
+        #expect(response.ciphers.count == 11)
         let urls = await transport.requests.map(\.url)
         #expect(urls == [
             "https://vw.test:8443/identity/connect/token",

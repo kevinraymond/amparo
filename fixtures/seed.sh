@@ -82,6 +82,9 @@ ensure_login "6. Streaming"       "https://streaming.example.com"   "maria@mail.
 ensure_login "7. Telefone"        "https://telefone.example.com"    "maria"            "senha-fone-1653"     "-" "$ORG_ID" "$COLLECTION_ID"
 ensure_login "8. Luz"             "https://luz.example.com"         "maria.silva"      "senha-luz-4817"      "-" "$ORG_ID" "$COLLECTION_ID"
 ensure_login "9. Previdencia"     "https://previdencia.example.com" "maria.silva"      "senha-prev-6039"     "JBSWY3DPEHPK3PXP" "$ORG_ID" "$COLLECTION_ID"
+# Real, reachable domain with a real login form: exercises the QuickType
+# suggestion path on device (M4-T3) — every *.example.com domain is fake.
+ensure_login "10. Wikipedia"      "https://en.wikipedia.org"        "amparo-test"      "senha-wiki-2593"     "-" "$ORG_ID" "$COLLECTION_ID"
 
 echo "== member: personal cipher (user-key path) =="
 bw_relogin "$MEMBER_EMAIL" "$MEMBER_PASSWORD"
@@ -91,5 +94,5 @@ ensure_login "Portal Medico"      "https://medico.example.com"      "maria.silva
 refresh_items
 total=$(json 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(0,"utf8")).length))' < "$ITEMS_JSON")
 bw logout >/dev/null 2>&1 || true
-echo "== done: member sees $total items (expect 10: 9 org + 1 personal) =="
-[ "$total" -eq 10 ]
+echo "== done: member sees $total items (expect 11: 10 org + 1 personal) =="
+[ "$total" -eq 11 ]

@@ -39,7 +39,7 @@ The handoff doc defines the tasks; this file records their state. One session
 - [x] M4-T2 no-interaction fill (biometry keychain read → system Face ID sheet → `ASPasswordCredential`; keychain failures → `userInteractionRequired`), interactive unlock fallback, big-tile picker filtered by service
 - [~] M4-T3 device matrix — **Safari fill verified 2026-08-08** (after two visibility fixes: ASCredentialProviderExtensionCapabilities + app-side entitlement, see session log). Still open: 3 real apps; interaction-required fallback (cancel first Face ID); **Assistive Access probe** (§8 open risk — result goes in Decision Log). Note: fixture domains are fake — for the QuickType path add a cipher with a real site's URI via `bw`.
 
-### M5 — Pilot/hardening (P4) — pending (incl. colorblind-friendly themes, added from device feedback 2026-08-08; standing rule meanwhile: no meaning by hue alone)
+### M5 — Pilot/hardening (P4) — pending (incl. colorblind-friendly themes + one-time-code autofill, both added from device feedback 2026-08-08; standing rule meanwhile: no meaning by hue alone; passkeys stay deferred per §8)
 ### M6 — Deployment kit (P5) — pending
 ### Android (P6) — blocked: no test device · Docs/store (P7) — last
 

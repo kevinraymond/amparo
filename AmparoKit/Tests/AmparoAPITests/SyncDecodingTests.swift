@@ -17,8 +17,8 @@ struct SyncDecodingTests {
 
         let response = try await client.sync()
 
-        #expect(response.ciphers.count == 10)
-        #expect(response.loginCiphers.count == 10)
+        #expect(response.ciphers.count == 11)
+        #expect(response.loginCiphers.count == 11)
         #expect(response.profile.key.type == 2)
         #expect(response.profile.privateKey.type == 2)
         #expect(response.profile.organizations.count == 1)
