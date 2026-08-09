@@ -44,6 +44,10 @@ targets:
         # (keychain-access-groups is only for $(AppIdentifierPrefix) groups.)
         com.apple.security.application-groups:
           - group.onl.kev.amparo
+        # Required on the CONTAINING APP too (not just the appex) for the
+        # provider to be listed in AutoFill settings — Apple's setup flow
+        # applies the capability to both targets.
+        com.apple.developer.authentication-services.autofill-credential-provider: true
   AmparoAutofill:
     type: app-extension
     platform: iOS
