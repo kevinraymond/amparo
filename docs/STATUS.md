@@ -37,7 +37,7 @@ The handoff doc defines the tasks; this file records their state. One session
 ### M4 — Autofill (P3) — code complete 2026-08-08, device matrix pending
 - [x] M4-T1 AmparoAutofill extension target (autofill entitlement + app group, provisioned via automatic signing) + `CredentialIdentityRegistrar` (post-unlock replace-all, §8 amended per D20) + `AutofillMatcher` (unit-tested)
 - [x] M4-T2 no-interaction fill (biometry keychain read → system Face ID sheet → `ASPasswordCredential`; keychain failures → `userInteractionRequired`), interactive unlock fallback, big-tile picker filtered by service
-- [x] M4-T3 device matrix ✅ 2026-08-08 (D21): picker fill in Safari + 3 real apps; **works inside Assistive Access** (§8 risk resolved); QuickType shows generic "Passwords" affordance on the multi-provider test device (re-verify inline chip on a sole-provider member device); no-interaction leg pending an inline-chip fill; extension monogram tiles → M5 icon polish.
+- [x] M4-T3 device matrix ✅ 2026-08-08 (D21): picker fill in Safari + 3 real apps; **works inside Assistive Access** (§8 risk resolved); QuickType shows generic "Passwords" affordance on the multi-provider test device (re-verify inline chip on a sole-provider member device); no-interaction leg ✅ verified (inline chip + system Face ID sheet, sole provider + real SSO login host); extension monogram tiles → M5 icon polish.
 
 ### M4.5 — Backend-agnostic auth (D22/D23, handoff v1.1) — pending
 - [ ] `Environment` struct + cloud presets (§6.3a) · API-key `client_credentials` auth replacing password grant (§6.3) · keychain tier swap (apiClientId/Secret/Environment) · enrollment UI fields · M2-T1b behavioral verify vs dev VW **and** a throwaway cloud account · migration/re-enroll story for enrolled devices

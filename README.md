@@ -18,7 +18,9 @@ cloud Bitwarden support for caregivers who won't self-host is landing next
 clients. This repo builds only the **member-side iOS client** — clean-room,
 Apache-2.0.
 
-<!-- TODO: screenshots — home grid, detail screen, QuickType fill, call-caregiver screen -->
+| Member home | Detail + code | AutoFill in Safari | Every error path |
+|---|---|---|---|
+| ![Big-tile home grid](docs/screenshots/home-grid.png) | ![Detail screen with TOTP ring](docs/screenshots/detail-totp.png) | ![Face ID fill on a real login page](docs/screenshots/quicktype-fill.png) | ![Call-caregiver screen](docs/screenshots/call-caregiver.png) |
 
 ## Why this exists
 
