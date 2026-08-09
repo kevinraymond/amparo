@@ -12,6 +12,7 @@ struct CaregiverSettingsView: View {
     @State private var consent: ConsentRecord?
     @State private var syncResult: String?
     @State private var confirmReset = false
+    @State private var showHelpPreview = false
 
     var body: some View {
         NavigationStack {
@@ -37,6 +38,13 @@ struct CaregiverSettingsView: View {
                     }
                 }
                 Section {
+                    Button("Preview member help screen") {
+                        showHelpPreview = true
+                    }
+                } footer: {
+                    Text("Shows exactly what the member sees when something goes wrong — check your name and that the call button dials the right number. Exit by holding the headline for 5 seconds.")
+                }
+                Section {
                     Button("Reset enrollment", role: .destructive) {
                         confirmReset = true
                     }
@@ -49,6 +57,9 @@ struct CaregiverSettingsView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .fullScreenCover(isPresented: $showHelpPreview) {
+                CallCaregiverView(onExitPreview: { showHelpPreview = false })
             }
             .confirmationDialog(
                 "Erase this device's enrollment? The member cannot use the app until you re-enroll.",

@@ -8,6 +8,11 @@ import SwiftUI
 struct CallCaregiverView: View {
     @Environment(AppModel.self) private var model
 
+    /// Set when shown as a caregiver-settings preview: the hidden hold
+    /// dismisses instead of opening the door, and nothing else differs —
+    /// the caregiver sees exactly what the member would.
+    var onExitPreview: (() -> Void)?
+
     @State private var showCaregiverDoor = false
 
     var body: some View {
@@ -21,7 +26,11 @@ struct CallCaregiverView: View {
                 .font(.largeTitle.bold())
                 .multilineTextAlignment(.center)
                 .onLongPressGesture(minimumDuration: 5) {
-                    showCaregiverDoor = true
+                    if let onExitPreview {
+                        onExitPreview()
+                    } else {
+                        showCaregiverDoor = true
+                    }
                 }
             if let caregiver = model.caregiver {
                 Text(String(format: String(localized: "call.body"), caregiver.name))
