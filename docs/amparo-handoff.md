@@ -1,7 +1,7 @@
 # amparo — Claude Code Handoff Package
 
 **Working name:** `amparo` (pt-BR: support, protection; legal connotation of protective recourse). Rename freely; no code identifiers depend on it.
-**Document status:** v1.0 — full SDLC handoff, iOS-first sequencing.
+**Document status:** v1.1 — full SDLC handoff, iOS-first sequencing; adds cloud Bitwarden support (D22/D23: Environment presets, unified API-key auth). *(v1.1 merge note: the cloud additions were drafted against v1.0 and initially overwrote the in-repo amendments; restored 2026-08-08 — cloud decisions renumbered D22/D23 because D6/D7 were long since taken.)*
 **Author/operator:** Kevin (Principal Technologist; 30+ yr systems; Rust/Swift/TS; local-first).
 **Agent:** Claude Code, iterative sessions. This document is the single source of truth. Update the Decision Log (§12) as decisions land.
 
@@ -68,6 +68,22 @@ Hardware on hand: iPhone 15 Pro (member-device test target), Apple Silicon Mac (
 - Org "Family", collection "Contas" (accounts): member added with read-only, no-password-viewing OFF (member must be able to view/fill — read-only + view). Caregiver = owner.
 - Emergency Access: member grants caregiver **Takeover**, wait time 1 day. (Vaultwarden implements Emergency Access; requires SMTP configured.)
 - Member's personal vault stays empty; everything lives in the collection so the caregiver can always manage it.
+
+### 2.1 Deployment variants: self-hosted Vaultwarden vs cloud Bitwarden (D22/D23)
+Amparo targets the standard Bitwarden client API and supports both backends. The client is backend-agnostic via the `Environment` struct (§6.3a) and the unified API-key auth flow (§6.3).
+
+| | **Vaultwarden (reference)** | **Cloud Bitwarden (bitwarden.com / .eu)** |
+|---|---|---|
+| URL layout | single host: `{base}/identity`, `/api`, `/icons` | split hosts: `identity.*`, `api.*`, `icons.bitwarden.net` — preset in Environment |
+| Auth | user API key (works; also the unified path) | user API key **required** (password grant blocked by hCaptcha + new-device email verification) |
+| Cost | $0 (infra only) | Free org covers caregiver+member (2-member limit = exactly this pair, 1 collection). **Emergency Access requires member account Premium ($10/yr).** |
+| Emergency Access | supported (SMTP required) | supported (Premium grantor) |
+| 2FA on member acct | disabled (tailnet-only exposure) | recommended ON; API-key grant bypasses interactive 2FA; caregiver keeps TOTP seed in own vault |
+| Exposure/trust | tailnet-only possible; caregiver controls infra | public endpoint; zero-knowledge crypto unchanged, but availability + metadata trust shifts to Bitwarden Inc. |
+| KDF | runbook pins PBKDF2 600k (D3) | new accounts default PBKDF2 600k — D3 holds; verify at enrollment, hard-fail on Argon2id until P4 |
+| Runbook | M6 primary | M6 cloud variant (account setup, API-key retrieval, org/collection, Premium note) |
+
+Recommendation unchanged: Vaultwarden-over-Tailscale is the reference deployment (local-first, $0, minimal trust surface). Cloud is the low-ops path for caregivers who won't self-host; the client must treat both as first-class.
 
 ---
 
@@ -175,15 +191,36 @@ Derived from the Bitwarden Security Whitepaper + public API documentation. Verif
 - AES-CBC via CommonCrypto (`CCCrypt`), PKCS#7 padding. HMAC/SHA via CryptoKit. RSA via `SecKeyCreateDecryptedData` (`.rsaEncryptionOAEPSHA1` / `...SHA256`).
 - Implement `EncString` parse/serialize + `SymmetricCryptoKey` (64B split) as pure functions with exhaustive tests, including malformed-input fuzz cases.
 
-### 6.3 Auth
-- `POST /identity/connect/token`, `application/x-www-form-urlencoded`:
-  `grant_type=password, scope=api offline_access, client_id=mobile, username=<email>, password=<masterPasswordHash b64>, deviceType=1 (iOS), deviceIdentifier=<stable UUID>, deviceName=amparo-ios`
-  Header: `Auth-Email: base64url(email)`.
-- Response: `access_token` (JWT, ~1–2h), `refresh_token`, `Key`, `PrivateKey`, `Kdf`, `KdfIterations`.
-- Refresh: `grant_type=refresh_token`. On refresh failure (revocation, key rotation, deactivation): purge local state → call-caregiver screen. **Never** prompt the member for credentials.
-- Observed against Vaultwarden (M2, captured in `AmparoKit/Tests/AmparoAPITests/Resources/`): refresh **does not rotate** the refresh token and its 200 body carries only the OAuth fields (no `Key`/`PrivateKey` — those come on the password grant); wrong password ⇒ 400 with **empty** `error` and the prose in `errorModel.message` (not `invalid_grant`); invalid/revoked refresh token ⇒ 400 bare `{"error":"invalid_grant"}`; 2FA challenge ⇒ 400 `invalid_grant` **plus** PascalCase `TwoFactorProviders`/`TwoFactorProviders2` keys — detect 2FA before classifying on `error`. Token bodies mix snake_case OAuth fields with PascalCase Bitwarden fields.
-- 2FA: not used for the member account (runbook disables; the account is reachable only over the tailnet). If the server returns a 2FA challenge anyway → call-caregiver screen.
-- New-device verification emails (Bitwarden 2024.12+ behavior): Vaultwarden exposes toggles; runbook disables for the member account. Client must still surface any unexpected 4xx as call-caregiver, never as raw error text.
+### 6.3 Auth — unified user-API-key flow (D23)
+
+> **Implementation status:** the shipped client (M2–M4) still uses the
+> password grant + refresh token; migrating to this flow is the M4.5
+> milestone. The password-grant behavioral observations are retained below
+> until that migration lands.
+Amparo uses the **user API key** (`client_credentials`) grant as its single auth path for both Vaultwarden and cloud Bitwarden. Rationale: cloud's identity server interposes hCaptcha and mandatory new-device email verification (2025+) on bare `grant_type=password` from unrecognized clients, which breaks the no-member-interaction model. API-key login is exempt from both, Vaultwarden supports it too, and it eliminates refresh-token machinery.
+
+- **Credential source:** the member account's `client_id` (`user.<uuid>`) + `client_secret`, from Web Vault → Settings → Security → Keys. Caregiver retrieves during enrollment (runbook step).
+- `POST {identityURL}/connect/token`, `application/x-www-form-urlencoded`:
+  `grant_type=client_credentials, scope=api, client_id=user.<uuid>, client_secret=<secret>, deviceType=1 (iOS), deviceIdentifier=<stable UUID>, deviceName=amparo-ios`
+- Response: `access_token` (JWT, ~1h). **No refresh token in this grant** — on expiry (401), re-run the same request. Encrypted user key/private key are taken from `/api/sync` `profile` (§6.4), not from the token response; verify behaviorally whether the token response also carries `Key`/`Kdf` and prefer sync as source of truth.
+- **Master password role:** entered once at enrollment, used **locally only** — prelogin → derive Master Key → Stretched Key → decrypt `profile.key`. It is never sent to the server in this flow (no master password hash transmitted). Zeroized after key extraction, as before.
+- API-key rotation or account deactivation → 401/invalid_client on re-auth → purge local state → call-caregiver screen. **Never** prompt the member for credentials.
+- 2FA: API-key grant bypasses interactive 2FA, so the member account MAY carry 2FA on cloud (recommended there; caregiver holds the TOTP seed in their own vault). Any unexpected challenge/4xx → call-caregiver screen, never raw error text.
+- New-device verification emails: not triggered by the API-key grant. Vaultwarden runbook toggles stay as documentation for anyone who opts into password-grant experiments; the shipped client uses API-key only.
+- Password-grant behaviors observed against Vaultwarden (M2, captured in `AmparoKit/Tests/AmparoAPITests/Resources/`; current-client reference until the D23 migration): refresh **does not rotate** the refresh token and its 200 body carries only the OAuth fields (no `Key`/`PrivateKey`); wrong password ⇒ 400 with **empty** `error` and prose in `errorModel.message` (not `invalid_grant`); invalid/revoked refresh token ⇒ 400 bare `{"error":"invalid_grant"}`; 2FA challenge ⇒ 400 `invalid_grant` **plus** PascalCase `TwoFactorProviders*` keys — detect 2FA before classifying on `error`. Token bodies mix snake_case OAuth fields with PascalCase Bitwarden fields.
+
+### 6.3a Environment resolution (D22)
+Replace the single `serverURL` with an `Environment` struct:
+```swift
+struct Environment {           // resolution order: preset > overrides > derived
+  var identityURL: URL         // default: base + "/identity"
+  var apiURL: URL              // default: base + "/api"
+  var iconsURL: URL            // default: base + "/icons"
+}
+```
+- **Presets:** `bitwarden.com` → `https://identity.bitwarden.com`, `https://api.bitwarden.com`, `https://icons.bitwarden.net`; `bitwarden.eu` → same pattern on `.eu`. Any other base URL → derived single-host paths (Vaultwarden/self-hosted layout).
+- Enrollment UI: one "Server" field; entering `bitwarden.com`/`bitwarden.eu` (or blank → default US cloud) selects the preset; anything else derives. Advanced disclosure exposes per-service overrides. Persist the resolved struct, not the input string.
+- Icon fetch on cloud uses `{iconsURL}/{domain}/icon.png` (unauthenticated, same shape as Vaultwarden).
 
 ### 6.4 Sync & models
 - `GET /api/sync?excludeDomains=true` (Bearer) → `{profile, folders, collections, ciphers, policies, sends}`.
@@ -203,8 +240,8 @@ Derived from the Bitwarden Security Whitepaper + public API documentation. Verif
 - iOS 17.0+, Swift 5.10+, SwiftUI, Xcode 16+. App Group `group.io.<org>.amparo`; shared Keychain Access Group. Two targets: app + autofill extension; both link `AmparoShared`.
 
 ### 7.2 Enrollment (caregiver-performed, on member device)
-1. First-run → caregiver screen (English, technical): server URL, email, master password, caregiver display name + phone (for the call screen), consent attestation checkbox (§10.3).
-2. Prelogin → derive → token → sync → full decrypt of User Symmetric Key + Private Key + org keys.
+1. First-run → caregiver screen (English, technical): server (preset or base URL, §6.3a), email, member-account API key (`client_id` + `client_secret`), master password, caregiver display name + phone (for the call screen), consent attestation checkbox (§10.3).
+2. Token (client_credentials) → sync → prelogin for KDF params → derive locally → full decrypt of User Symmetric Key + Private Key + org keys. Master password never leaves the device (§6.3).
 3. Persist to Keychain (§7.3). **Master password is zeroized and never stored.**
 4. Register autofill identities; walk caregiver through Settings → General → AutoFill & Passwords → enable Amparo (deep-link where possible; show illustrated steps).
 5. Hand device to member. Enrollment screens are reachable afterward only via hidden gesture (long-press 5s on the header) + caregiver PIN set during enrollment.
@@ -212,7 +249,7 @@ Derived from the Bitwarden Security Whitepaper + public API documentation. Verif
 ### 7.3 Key storage & unlock model
 - Keychain items (access group shared with extension), `kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly`:
   - `userKey` (64B), `privateKey` (DER), `orgKeys` (dict) — protected with `SecAccessControl(.biometryCurrentSet)` → any read triggers Face ID automatically. This *is* the unlock UX; there is no lock screen in the app. **(Amended by D19: these three are ONE keychain item — `vaultKeys`, a JSON blob — because each biometry-gated read prompts separately; on-device testing showed two Face ID prompts per launch with split items.)**
-  - `refreshToken`, `serverURL`, `email`, config — passcode-only protection (no biometry) so background refresh/sync can run.
+  - `apiClientId`, `apiClientSecret`, resolved `Environment`, `email`, config — passcode-only protection (no biometry) so re-auth/sync can run without a biometric prompt. (No refresh token exists in the API-key flow; the stored secret occupies the same protection tier a refresh token would. Until the M4.5 migration, the shipped client stores `refreshToken` + `serverURL` in this tier instead.)
 - Cipher cache: ciphers stored **encrypted as received** (EncStrings) in a local store (SQLite/GRDB or flat JSON — Claude Code's choice, log it); decrypt fields on demand with keys from Keychain. Memory hygiene: decrypted secrets in `Data` zeroized after use where practical.
 - Biometry reset (Face ID re-enrolled) invalidates `.biometryCurrentSet` items → call-caregiver screen (caregiver re-enrolls; runbook covers).
 
@@ -220,7 +257,6 @@ Derived from the Bitwarden Security Whitepaper + public API documentation. Verif
 - **Home:** grid of large tiles (min 44pt targets — target ~120pt tiles), icon + site name only. Max ~8 visible; ordered by caregiver via cipher name prefix convention (`1. Banco`, `2. Email` — strip the prefix for display) — zero server-side custom fields needed. No search in v1 unless >12 items.
 - **Detail (tap tile):** giant "Copiar senha / Copy password" button (copies, 60s clipboard expiry via `UIPasteboard` expiration), secondary "Mostrar / Show" reveal with auto-hide 30s, username shown large. If TOTP present: 64pt code with a countdown ring. Nothing else.
 - **Typography:** Dynamic Type up to accessibility sizes; default to `.accessibility1`; WCAG AAA contrast; respect Reduce Motion; VoiceOver labels on everything.
-- **Color vision (added 2026-08-08):** standing rule from M3 on — never encode meaning in hue alone (every state also has text/icon/shape). Colorblind-friendly theme options (deuteranopia/protanopia/tritanopia-safe palettes, selectable in caregiver settings) land as an M5 task.
 - **Language:** en base; pt-BR localization scaffolded from day one (Kevin will polish strings).
 - **Error surface (single):** call-caregiver screen — caregiver name, giant phone button (`tel:`), calm one-sentence copy. All failure paths route here.
 - No settings, no onboarding, no tips, no badges, no notifications to the member.
@@ -230,7 +266,7 @@ Derived from the Bitwarden Security Whitepaper + public API documentation. Verif
 ## 8. AutoFill extension (P3)
 
 - `AmparoAutofill` target: subclass `ASCredentialProviderViewController`; entitlement `com.apple.developer.authentication-services.autofill-credential-provider`.
-- Populate `ASCredentialIdentityStore` with `ASPasswordCredentialIdentity(serviceIdentifier: <uri host>, user: <username>, recordIdentifier: <cipherId>)` → QuickType shows suggestions in Safari/apps without opening our UI. **(Amended by D20: registration runs after each *unlock*, not after every sync — identities need decrypted domains/usernames, and sync happens before Face ID while fields are still EncStrings. A new credential reaches QuickType the next time the member opens the app; the enrollment walkthrough documents this.)**
+- Populate `ASCredentialIdentityStore` with `ASPasswordCredentialIdentity(serviceIdentifier: <uri host>, user: <username>, recordIdentifier: <cipherId>)` → QuickType shows suggestions in Safari/apps without opening our UI. **(Amended by D20: registration runs after each *unlock*, not after every sync — identities need decrypted domains/usernames, and sync happens before Face ID while fields are still EncStrings.)**
 - `provideCredentialWithoutUserInteraction(for:)`: read keys from Keychain (biometry fires system Face ID sheet), decrypt cipher, return `ASPasswordCredential`. If biometry unavailable → `userInteractionRequired` → minimal extension UI (same big-tile list, filtered by `serviceIdentifiers`).
 - `prepareCredentialList(for:)`: big-tile picker, same visual language as app.
 - v1 scope: passwords only. Passkey provider APIs (`prepareInterface(forPasskeyRegistration:)` etc.) explicitly deferred — delegation story isn't there yet.
@@ -282,7 +318,8 @@ Listing copy: "assisted access for the account holder, managed by a helper they 
 - M1-T5 End-to-end vector: fixture account → decrypt a known cipher, validated against `bw` CLI output.
 
 **M2 — AmparoAPI**
-- M2-T1 prelogin/token/refresh (+Auth-Email header, deviceIdentifier persistence).
+- M2-T1 Environment resolution (presets + derived, §6.3a) with unit tests; token via client_credentials API-key grant + 401 re-auth path; prelogin for KDF params; deviceIdentifier persistence.
+- M2-T1b Behavioral verification vs BOTH backends: dev Vaultwarden and a throwaway cloud free account — confirm token response shape, whether `Key`/`Kdf` appear in the API-key token response, sync as key source of truth. Log findings in Decision Log.
 - M2-T2 sync + models (Login ciphers, orgs, profile keys); decode-tolerant (unknown fields ignored).
 - M2-T3 integration suite vs dev VW, incl. revoked-token → typed `AmparoError.reenrollRequired`.
 
@@ -298,9 +335,11 @@ Listing copy: "assisted access for the account holder, managed by a helper they 
 - M4-T2 Without-user-interaction path; interaction-required fallback UI.
 - M4-T3 Device test matrix incl. Assistive Access probe (log result).
 
-**M5 — Pilot/hardening:** TestFlight, clipboard expiry verify, memory hygiene pass, colorblind-friendly theme options (§7.4 color-vision rule; caregiver-selectable palettes), one-time-code autofill (`ProvidesOneTimeCodes` + `ASOneTimeCodeCredentialIdentity`, needs iOS 18 floor — deferred from M4 by Kevin 2026-08-08; passkeys stay out per §8), WebSocket push (optional), Argon2id (optional).
+**M4.5 — Backend-agnostic auth (D22/D23):** `Environment` struct + presets (§6.3a), API-key `client_credentials` flow replacing password grant + refresh machinery (§6.3), keychain tier swap (`apiClientId`/`apiClientSecret`/`Environment`), enrollment UI fields, M2-T1b behavioral verification vs both backends, migration/re-enroll story for existing devices.
 
-**M6 (P5) — Deployment kit:** prod compose (VW+Caddy) + Tailscale variant, enrollment runbook (encodes §2 account model + member-account 2FA/new-device settings), restic backup unit, upgrade notes.
+**M5 — Pilot/hardening:** TestFlight, clipboard expiry verify, memory hygiene pass, colorblind-friendly theme options (§7.4 color-vision rule; caregiver-selectable palettes), one-time-code autofill (`ProvidesOneTimeCodes` + `ASOneTimeCodeCredentialIdentity`, needs iOS 18 floor — deferred from M4; passkeys stay out per §8), extension tile icons via app-group icon cache (D21 finding), WebSocket push (optional), Argon2id (optional).
+
+**M6 (P5) — Deployment kit:** prod compose (VW+Caddy) + Tailscale variant, enrollment runbook (encodes §2 account model + member-account 2FA/new-device settings + API-key retrieval), restic backup unit, upgrade notes. **Cloud variant runbook:** bitwarden.com/.eu account setup, free-org caregiver+member configuration, member Premium for Emergency Access, API-key retrieval, 2FA-on + TOTP-seed custody, KDF verification step.
 
 ---
 
@@ -328,10 +367,13 @@ Listing copy: "assisted access for the account holder, managed by a helper they 
 | D18 | 2026-08-08 | App scaffold: xcodegen `project.yml` committed, `.xcodeproj` gitignored; bundle root `onl.kev.amparo` (Kevin owns kev.onl); keychain sharing via the App Group id (`group.onl.kev.amparo`) rather than an AppIdentifierPrefix group; member UI Dynamic Type clamped to `.accessibility1+`; TOTP implemented in AmparoCrypto from RFC 4226/6238 | Regenerable project, reviewable config; app-group keychain works identically for the M4 extension without hardcoding the team ID; §7.4 accessibility default; autofill (M4) needs TOTP-on-fill anyway |
 | D19 | 2026-08-08 | From device-pass findings: (a) all biometry key material in ONE keychain blob (`vaultKeys` = user key + private key DER + org keys) — one Face ID per unlocked session, pinned by a regression test; (b) keychain-level failures at unlock are retryable `.locked`, never terminal; call-caregiver self-heals on foreground when the vault isn't purged; (c) purge also keeps `caregiverPIN`, and the call screen gains the hidden 5s-hold + PIN door | On device each biometry-gated SecItem read prompts separately (two Face IDs per launch); a transient failure must not strand the member on a dead-end screen; after a purge the caregiver must be able to re-enroll without reinstalling |
 | D20 | 2026-08-08 | Autofill (M4): QuickType identities registered from decrypted tiles after each unlock, replace-all (§8 amended — post-sync registration is impossible pre-Face-ID); extension reads app-group snapshot + shared keychain only, never syncs; no-interaction path relies on the biometry keychain read raising the system Face ID sheet, keychain failures escalate to `userInteractionRequired`; picker matching is subdomain-tolerant both directions (`AutofillMatcher`); extension UI = monogram tiles (icon cache is app-container only, v1); passwords only per §8; identity purge on reset | Identities need plaintext domain/username; a non-syncing extension keeps tokens/network out of the extension process; matcher rules unit-tested; passkeys and TOTP-on-fill (`ASOneTimeCodeCredential`) deferred |
+| D21 | 2026-08-08 | M4-T3 device matrix (kPhone, iOS 26): picker-path fill verified in Safari + 3 real apps; **fill works inside Assistive Access** (§8/§13 open risk resolved — Assistive Access is a supported deployment mode); QuickType surfaces the generic "Passwords" affordance rather than an inline chip on the test device (multiple providers enabled; production member devices run Amparo as the sole provider — re-verify then); cancel from the picker returns to the host app; the no-interaction leg remains unexercised pending an inline-chip fill; extension tiles are monogram-only (per D20) — app-group icon cache queued for M5 | Empirical results from the device pass; the Assistive Access answer removes the biggest product-deployment unknown |
+| D22 | 2026-08-08 | `Environment` struct with cloud presets (bitwarden.com/.eu) + derived single-host layout (§6.3a) | Cloud splits identity/api/icons across hosts; self-hosted is single-base |
+| D23 | 2026-08-08 | User-API-key (`client_credentials`) as the single auth flow for all backends; password grant removed (§6.3; migration = M4.5) | Cloud hCaptcha + mandatory new-device email verification break no-member-interaction model; API-key grant exempt, supported by Vaultwarden, eliminates refresh-token machinery; master password becomes local-only |
 
 ## 13. Open questions
-- Assistive Access × third-party autofill: empirical answer needed (M4-T3).
-- QR-assisted enrollment (from device testing, 2026-08-08): a QR encoding server URL + email (never the master password) that the enrollment screen scans to prefill — cuts the error-prone typing on the member device. Where does the QR come from with no caregiver app? (Deployment-kit script printing one? P5.) Candidate for P4/P5.
+- ~~Assistive Access × third-party autofill~~ **Resolved 2026-08-08 (D21): works — picker fill completes inside Assistive Access.**
+- QR-assisted enrollment (from device testing, 2026-08-08): a QR encoding server/Environment + email + API-key client_id (never secrets) that the enrollment screen scans to prefill. Where does the QR come from with no caregiver app? (Deployment-kit script printing one? P5.) Candidate for P4/P5.
 - Vaultwarden WebSocket push payload shape (behavioral capture in P4 if pursued).
 - TOTP: render only, or hide entirely for members whose sites use SMS? (Pilot decides.)
 - Dual-licensing AmparoKit for the future GPL Android repo: decide at P6.

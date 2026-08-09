@@ -37,7 +37,10 @@ The handoff doc defines the tasks; this file records their state. One session
 ### M4 — Autofill (P3) — code complete 2026-08-08, device matrix pending
 - [x] M4-T1 AmparoAutofill extension target (autofill entitlement + app group, provisioned via automatic signing) + `CredentialIdentityRegistrar` (post-unlock replace-all, §8 amended per D20) + `AutofillMatcher` (unit-tested)
 - [x] M4-T2 no-interaction fill (biometry keychain read → system Face ID sheet → `ASPasswordCredential`; keychain failures → `userInteractionRequired`), interactive unlock fallback, big-tile picker filtered by service
-- [~] M4-T3 device matrix — **Safari fill verified 2026-08-08** (after two visibility fixes: ASCredentialProviderExtensionCapabilities + app-side entitlement, see session log). Still open: 3 real apps; interaction-required fallback (cancel first Face ID); **Assistive Access probe** (§8 open risk — result goes in Decision Log). Note: fixture domains are fake — for the QuickType path add a cipher with a real site's URI via `bw`.
+- [x] M4-T3 device matrix ✅ 2026-08-08 (D21): picker fill in Safari + 3 real apps; **works inside Assistive Access** (§8 risk resolved); QuickType shows generic "Passwords" affordance on the multi-provider test device (re-verify inline chip on a sole-provider member device); no-interaction leg pending an inline-chip fill; extension monogram tiles → M5 icon polish.
+
+### M4.5 — Backend-agnostic auth (D22/D23, handoff v1.1) — pending
+- [ ] `Environment` struct + cloud presets (§6.3a) · API-key `client_credentials` auth replacing password grant (§6.3) · keychain tier swap (apiClientId/Secret/Environment) · enrollment UI fields · M2-T1b behavioral verify vs dev VW **and** a throwaway cloud account · migration/re-enroll story for enrolled devices
 
 ### M5 — Pilot/hardening (P4) — pending (incl. colorblind-friendly themes + one-time-code autofill, both added from device feedback 2026-08-08; standing rule meanwhile: no meaning by hue alone; passkeys stay deferred per §8)
 ### M6 — Deployment kit (P5) — pending
@@ -55,6 +58,7 @@ The handoff doc defines the tasks; this file records their state. One session
 | 2026-08-08 | Tailnet dev TLS live | Tailscale app on Mac (node renamed `amparo-dev`) + kPhone on tailnet; HTTPS certs enabled tailnet-wide; `tailscale serve --bg http://localhost:8222` → `https://amparo-dev.tailc12075.ts.net` (tailnet-only, real LE cert, ATS-clean). `/alive` + prelogin verified through the proxy. `deploy/dev-tls-notes.md` updated with the live setup; on-device enrollment unblocked. |
 | 2026-08-08 | Device-pass fixes | Kevin's round-1 findings → D19: single biometry blob (one Face ID/session, regression-tested), call screen self-heals + hidden caregiver door (PIN survives purge), home-grid gap, detail no-wrap + reveal countdown. 97 tests green; 0.1.0 rebuilt + reinstalled on kPhone. Globe icons = VW fallback for fake fixture domains (expected); QR enrollment → §13. |
 | 2026-08-08 | M4 code complete | AmparoAutofill extension (onl.kev.amparo.autofill): no-interaction fill, interactive fallback, filtered big-tile picker; identity registration post-unlock (D20, §8 amended); AutofillMatcher + mapping unit-tested (102 tests green). Autofill entitlement provisioned via automatic signing; installd taught us appex needs CFBundleDisplayName. Installed on kPhone. M4-T3 device matrix + Assistive Access probe = Kevin. |
+| 2026-08-08 | M4 COMPLETE | M4-T3 results in (D21): picker fill Safari + 3 apps ✓; **Assistive Access ✓** — the biggest deployment unknown resolved in our favor. Handoff v1.1 (Kevin): cloud Bitwarden support via Environment presets + unified API-key auth — merged with restored in-repo history (his D6/D7 renumbered D22/D23; §6.3/§6.4/§7.3/§8/M5/§12/§13 amendments re-applied); new milestone M4.5 created for the auth migration. |
 
 ## Environment notes (dev host)
 
