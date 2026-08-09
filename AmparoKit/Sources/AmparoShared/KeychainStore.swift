@@ -11,7 +11,10 @@ public final class KeychainStore: @unchecked Sendable {
         /// items; nil for unit tests and non-provisioned builds.
         public let accessGroup: String?
 
-        public init(service: String = "onl.kev.amparo", accessGroup: String? = nil) {
+        public init(
+            service: String = AmparoIdentifiers.keychainService,
+            accessGroup: String? = nil
+        ) {
             self.service = service
             self.accessGroup = accessGroup
         }

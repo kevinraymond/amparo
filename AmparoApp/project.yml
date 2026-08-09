@@ -1,6 +1,18 @@
 # Regenerate the Xcode project with `xcodegen` from this directory.
 # The .xcodeproj is gitignored; this file is the source of truth.
+#
+# FORK SETUP (two steps, no code edits):
+#   1. cp project-local.example.yml project-local.yml and set your Apple
+#      DEVELOPMENT_TEAM (project-local.yml is gitignored).
+#   2. Replace the identifiers below with your own reverse-DNS root: both
+#      PRODUCT_BUNDLE_IDENTIFIERs and the app-group entitlement values
+#      (app groups are team-scoped, so you cannot reuse these). The code
+#      derives keychain service and app-group names from the bundle id at
+#      runtime — project.yml is the only file to change.
 name: Amparo
+include:
+  - path: project-local.yml
+    optional: true
 options:
   bundleIdPrefix: onl.kev
   deploymentTarget:
@@ -11,7 +23,7 @@ packages:
     path: ../AmparoKit
 settings:
   base:
-    DEVELOPMENT_TEAM: 45PS9D6Z99
+    # DEVELOPMENT_TEAM comes from gitignored project-local.yml (see header).
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
 targets:

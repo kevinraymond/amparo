@@ -22,6 +22,10 @@ Apache-2.0.
 
 ## Why this exists
 
+Amparo began as [a request on r/SomebodyMakeThis](https://www.reddit.com/r/SomebodyMakeThis/comments/1vit5w3/an_app_where_adult_kids_manage_their_elderly/) —
+an app where adult kids manage their elderly parents' passwords. This is
+that app.
+
 If your parent can handle a stock password manager with biometrics, use one —
 the family-vault features in Bitwarden, 1Password, and Apple Passwords are
 genuinely good, and Amparo is not for you.
@@ -167,11 +171,16 @@ swift test --filter AmparoAPIIntegrationTests
 
 ```sh
 brew install xcodegen
-cd AmparoApp && xcodegen              # generates Amparo.xcodeproj (gitignored)
+cd AmparoApp && ./generate.sh         # generates Amparo.xcodeproj (gitignored)
 ```
 
-Set `DEVELOPMENT_TEAM` in `AmparoApp/project.yml` to your own team for device
-builds; the AutoFill entitlement provisions via automatic signing.
+Simulator builds work out of the box. For device builds, put your Apple
+team ID in `AmparoApp/project-local.yml` (created from the example on first
+run, gitignored) and change the bundle identifiers + app-group values in
+`project.yml` to your own reverse-DNS root — app groups are team-scoped, so
+the defaults can't be reused. The code derives everything else from the
+bundle id at runtime; the AutoFill entitlement provisions via automatic
+signing.
 
 ## License
 

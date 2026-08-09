@@ -1,0 +1,7 @@
+# Machine-local build settings — ./generate.sh copies this to
+# project-local.yml (gitignored) on first run.
+# Simulator builds work with an empty team; device builds need your real
+# Apple Developer team ID here (Xcode → Settings → Accounts).
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""

@@ -18,20 +18,20 @@ Matches the production deployment model (tailnet-only access).
 
 - Mac app installed via `brew install --cask tailscale-app`; CLI at
   `/Applications/Tailscale.app/Contents/MacOS/Tailscale`. Node renamed
-  `amparo-dev` (`tailscale set --hostname amparo-dev`). iPhone (kPhone) on
-  the same tailnet. MagicDNS suffix: `tailc12075.ts.net`.
+  a memorable name via `tailscale set --hostname <node>`. The test iPhone on
+  the same tailnet.
 - HTTPS certificates enabled tailnet-wide (admin console → DNS →
   HTTPS Certificates). Without this, `tailscale serve` hangs on an
   interactive enable prompt and `tailscale cert` returns
   "account does not support getting TLS certs".
 - Proxy: `tailscale serve --bg http://localhost:8222` — serves
-  **`https://amparo-dev.tailc12075.ts.net`** (tailnet-only) with a real
+  **`https://<node>.<tailnet>.ts.net`** (tailnet-only) with a real
   Let's Encrypt cert, auto-renewed by tailscaled; config persists across
   restarts. Disable with `tailscale serve --https=443 off`.
 - Verified: `/alive` 200 and prelogin through the proxy; cert chain is
   publicly trusted, so iOS ATS accepts it with zero device configuration.
 
-**Enrollment URL for device testing: `https://amparo-dev.tailc12075.ts.net`**
+**Enrollment URL for device testing: `https://<node>.<tailnet>.ts.net`** (operator values live in gitignored `deploy/dev-local.md`)
 
 Caveat: compose still sets `DOMAIN=https://localhost:8443`. That base URL
 only leaks into web-vault links and invite emails (unused in dev); every

@@ -28,7 +28,7 @@ public struct CipherStore: Sendable {
     }
 
     /// The shared container both the app and the autofill extension read.
-    public static func appGroup(_ identifier: String = "group.onl.kev.amparo") -> CipherStore? {
+    public static func appGroup(_ identifier: String = AmparoIdentifiers.appGroup) -> CipherStore? {
         guard let container = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: identifier) else { return nil }
         return CipherStore(fileURL: container.appendingPathComponent("vault-snapshot.json"))

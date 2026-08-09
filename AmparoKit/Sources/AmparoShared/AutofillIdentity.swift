@@ -2,10 +2,24 @@ import AmparoAPI
 import AuthenticationServices
 import Foundation
 
-/// The identifiers the app and the autofill extension must agree on.
+/// The identifiers the app and the autofill extension must agree on —
+/// derived from the running bundle so forks only change bundle ids and the
+/// app-group entitlement in `AmparoApp/project.yml`; no code edits needed.
+/// Convention: extension bundle id = `<app-bundle-id>.<suffix>`, app group =
+/// `group.<app-bundle-id>`.
 public enum AmparoIdentifiers {
-    public static let keychainService = "onl.kev.amparo"
-    public static let appGroup = "group.onl.kev.amparo"
+    /// The container app's bundle id, whether running as the app or as an
+    /// embedded .appex (which strips its one extra suffix component).
+    public static let containerBundleID: String = {
+        let bundle = Bundle.main
+        let identifier = bundle.bundleIdentifier ?? "app.amparo.member"
+        guard bundle.bundleURL.pathExtension == "appex",
+              let lastDot = identifier.lastIndex(of: ".") else { return identifier }
+        return String(identifier[..<lastDot])
+    }()
+
+    public static let keychainService = containerBundleID
+    public static let appGroup = "group." + containerBundleID
 }
 
 extension VaultStore {
